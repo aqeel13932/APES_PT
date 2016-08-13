@@ -6,7 +6,7 @@ np.set_printoptions(linewidth=150,precision=0)
 class World:
     """This class represent the Grid world and organize the policy between world elements.
     Attributes:
-        * agents: Dictionary (Key: Agent ID, Value: Agent Object)
+        * agents: Ordered Dictionary (Key: Agent ID, Value: Agent Object)
         * foods: Dictionary (Key:Food ID, Value: Food object)
         * obstacles: Dictionary (Key: obstacle ID, Value: Obstacle object)
         * world: numpy array (n,n) represent the World
@@ -284,6 +284,7 @@ class World:
     #### Main Function Consume All Agents NextActions #######
     def Step(self):
         """Execute all agents actions, calculate there vision, and ditribute rewards"""
+        map(lambda x:self.agents[x].Reset(),self.agents.keys())
         map(lambda x:self._ConsumAgentActions(x),self.agents.keys())
         map(lambda x:self._GetTotalVision(x),self.agents.keys())
         map(lambda x:self._AgentNNInput(x),self.agents.keys())
@@ -351,22 +352,27 @@ class World:
             self.VBM[dest] = not  self.agents[ID].See
             self.VBM[p] = False
             return
-        ### No Action Well be Taken Otherwise #
-        '''
+
         #Agent
         if 0<self.world[dest]<=2000:
-            print 'Obs its an other agent'
+            #print 'Obs its an other agent'
             return
-
+        
         #Food
         if self.world[dest]<=3000:
-            print 'Nice I like food'
+            self.agents[ID].IAteFoodID = self.world[dest]
+            self.world[dest]=ID
+            self.world[p]=0
+            self.VBM[dest] = not  self.agents[ID].See
+            self.VBM[p] = False
             return
 
-        #Barriers
+        '''
+        # Barriers
         #if self.world[dest]>3000:
         #    return
         '''
+
     def _NorthPosition(self,position):
         """Calculate north position depending on the current position
         Args :
@@ -501,11 +507,9 @@ class World:
             * Change All Ranges to .ControlRange not (-1) it's -1 only for testing purpuse
             * Change Punish per step to not punish when agent do nothing"""
         # Check Agents in Foods Range
-        # Problems To Solve :
-        # 2 - detect agents looking to this food in we reward only agents looking to this food.
         def ResetagentReward(ID):
             #Punish for step 
-            agents[ID].CurrentReward= rwrdschem[2] if len(agents[ID].NextAction)>0 else 0
+            agents[ID].CurrentReward= -1 # rwrdschem[2] if len(agents[ID].NextAction)>0 else 0
             
         map(lambda x:ResetagentReward(x),agents.keys())
 
@@ -514,18 +518,20 @@ class World:
             AES[0]-=1
             Terminated[0]= True if AES[0]<=0 else Terminated[0]
         #If Food Could be eaten without being in agent vision activate this
-        for ID in AvailableFoods:
-            foodcenter = World._GetElementCoords(ID,world)
-            fborder = World._GetVisionBorders(foodcenter,foods[ID].Range,world.shape)
-            crff = world[fborder[0]:fborder[1],fborder[2]:fborder[3]]
+        #for ID in AvailableFoods:
+        #    foodcenter = World._GetElementCoords(ID,world)
+        #    fborder = World._GetVisionBorders(foodcenter,foods[ID].Range,world.shape)
+        #    crff = world[fborder[0]:fborder[1],fborder[2]:fborder[3]]
             #Find location of all elements between 0 and Food ID (2000 as default)
-            agnts = crff[(crff>1000)&(crff<=2000)]
+        #    agnts = crff[(crff>1000)&(crff<=2000)]
             
-            for aID in agnts:
-                agents[aID].CurrentReward+= foods[ID].Energy* rwrdschem[1]
-                world[world==ID]=0
+        #    for aID in agnts:
+        #        agents[aID].CurrentReward+= foods[ID].Energy* rwrdschem[1]
+        #        world[world==ID]=0
             
         for ID in agents.keys():
+            if agents[ID].IAteFoodID >-1:
+                agents[ID].CurrentReward+= foods[agents[ID].IAteFoodID].Energy* rwrdschem[1]
             agntcenter = World._GetElementCoords(ID,agents[ID].FullEgoCentric)
             aborder = World._GetVisionBorders(agntcenter,-1,agents[ID].FullEgoCentric.shape)
             #print 'Control Range For Agent ID:',ID
@@ -534,9 +540,9 @@ class World:
             # List of Agents in Control Rane + In Vision Range
             
             for EnemyID in crfa[(crfa>1000)&(crfa<=2000)&(crfa!=ID)]:
-                agents[EnemyID].CurrentReward+= rwrdschem[0]*agents[ID].Power
-                #In case harm in both directions we activate this line as well
-                agents[ID].CurrentReward+=rwrdschem[0]*agents[EnemyID].Power
+                #If I have more power I punish
+                if agents[ID].Power>agents[EnemyID].Power:
+                    agents[EnemyID].CurrentReward+= rwrdschem[0]*agents[ID].Power
 
             #Activate this if Food reward when in vision
 
