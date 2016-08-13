@@ -1,6 +1,11 @@
 import cv2
 import numpy as np
 import os
+#For Video Genration.
+import matplotlib.animation as animation
+#import numpy as np
+from pylab import *
+from datetime import datetime
 #Add Thread Management
 class Settings:
     """Settings class to handle shared data
@@ -136,4 +141,22 @@ class Settings:
         Settings.Images[0]=np.tile(1,(Settings.BlockSize[0],Settings.BlockSize[1],3)) #Empty
         Settings.Images[-1]=np.tile(0,(Settings.BlockSize[0],Settings.BlockSize[1],3)) # black or unobservable
 
-        
+    
+    @staticmethod
+    def ani_frame(rimages=[],fps=2,dpi = 100,name='demo'):
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+        ax.set_aspect('equal')
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        im = ax.imshow(rand(1,1))
+        fig.set_size_inches(Settings.FigureSize)
+        tight_layout()
+
+        def update_img(n):
+            im.set_data(rimages[n])
+            return im
+        x = datetime.now()
+        ani = animation.FuncAnimation(fig,update_img,len(rimages),interval=30)
+        writer = animation.writers['ffmpeg'](fps=fps)
+        ani.save('{}_fps:{}_DPI:{}_{}-{}-{}-{}:{}:{}.mp4'.format(name,fps,dpi,x.year,x.month,x.day,x.hour,x.minute,x.second),writer=writer,dpi=dpi)
