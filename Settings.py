@@ -140,10 +140,16 @@ class Settings:
         Settings.BlockSize = (Newsize,Newsize)
         Settings.Images[0]=np.tile(1,(Settings.BlockSize[0],Settings.BlockSize[1],3)) #Empty
         Settings.Images[-1]=np.tile(0,(Settings.BlockSize[0],Settings.BlockSize[1],3)) # black or unobservable
-
     
     @staticmethod
     def ani_frame(rimages=[],fps=2,dpi = 100,name='demo'):
+        """Create Videom from list of images
+        Args:
+            * rimages: list of images
+            * fps: Frame Per Second (image per second)
+            * dpi: dot per pixel
+            * name: File name looks like  Name_fps:2_DPI:100_YYYY-MM-DD-HH:MM:SS.mp4
+        """
         fig = plt.figure()
         ax = fig.add_subplot(111)
         ax.set_aspect('equal')
