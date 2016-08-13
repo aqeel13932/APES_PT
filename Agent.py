@@ -35,6 +35,7 @@ class Agent:
             * ControlRange: The distance between agent and (food or other agents) where agent can actually make actions.
             * See: True for other agent can see through this agent , False they can't
             * PdstName:(Probability Distribution Name) The name of wanted distribution (name should be linked with Settings.IndiciesOrderTable)
+            * IAteFoodID: contain the food ID that has been eaten in the last step by this agent, -1 if non eaten
         Exception:
             * ValueError Exception: when ControlRange larger than Range
             * IOError Exception : When Fname file doesn't exist
@@ -81,7 +82,8 @@ class Agent:
 
         #Center Point in Vision Field
         self.CenterPoint=0
-        
+        #Containt the food ID that this agent Ate.
+        self.IAteFoodID=-1
         self.PrepareFieldofView()
 
     def DrawDirectionImage(self):
