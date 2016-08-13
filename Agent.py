@@ -227,5 +227,14 @@ class Agent:
         * modify np.random.randint(1,MRA) to (0,MRA) so it may include the action nothing"""
         nsamples = np.random.randint(0,MRA)
         choices = np.random.choice(len(Settings.PossibleActions),nsamples,replace=Replace)
-        self.NextAction =  Settings.PossibleActions[choices]
+        try:
+            self.NextAction =  Settings.PossibleActions[choices][0]
+        except IndexError:
+            self.NextAction=[]
+    
+    def Reset(self):
+        """Reset agent information before each step"""
+        self.CurrentReward=0
+        self.IAteFoodID=-1
+
     
