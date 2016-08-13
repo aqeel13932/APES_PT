@@ -1,6 +1,7 @@
 import numpy as np
 from Settings import *
 from FOV_Calculator import FOV_SC
+from collections import OrderedDict
 np.set_printoptions(linewidth=150,precision=0)
 class World:
     """This class represent the Grid world and organize the policy between world elements.
@@ -24,6 +25,7 @@ class World:
     """
     def __init__(self,ANNIG=None,RewardsScheme=[-10,10,-1],RewardFunction=None,AES=0):
         """Description: Initialize the world depending on the settings from Settings.py file
+        IMPORTANT: AGENTS ARE ORDERED DICTIONARY, SO IF ORDER IMPORTANT ORDER THEM IN INPUT LIST (MORE POWERFUL BEFORE THE WEAK OR OPPIST DEPENDING ON YOUR NEED)
         Args:
             * ANNIG:(Agent Neural Network Input Gnerator) Function to generate the input for the neural network, info about the parameters from _FindAgentOutput function.
                     EXAMPLE FUNCTION (Default at version 0.1): Check _FindAgentOutput
@@ -31,7 +33,7 @@ class World:
             * RewardFunction: Function responsible to distribute reward and punishments on agents, info about the parameters from _EstimateRewards
                     EXAMPLE FUNCTION (Default at version 0.1): Check _EstimateRewards
             * AES: (After End Steps) number of steps to keep the game going while no food exist."""
-        self.agents = {}
+        self.agents = OrderedDict()
         self.foods={}
         self.obstacles = {}
         self.world = np.zeros(Settings.WorldSize,dtype=int)
