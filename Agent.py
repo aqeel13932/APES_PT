@@ -5,6 +5,7 @@ import numpy as np
 from math import ceil
 from time import time
 from collections import defaultdict
+from astar import *
 class Agent:
     """This class simulate the agent behavior.
     Attributes:
@@ -24,7 +25,9 @@ class Agent:
         * CurrentReward: After passing step, this variable will contain the reward the agent got from the step.
         * FullEgoCentric: numpy array contain what the agent can see in EgoCentric.
         * NNFeed: Customized output (by default a list) contain what agent need as output from the world.
-        * CenterPoint: Vision Field center point"""
+        * CenterPoint: Vision Field center point
+        * IAteFoodID: contain the food ID that has been eaten in the last step by this agent, -1 if non eaten
+        * IV:Incremental Vision, Each step the unseen only will be updated.(used in DetectAndAstar function (2d numpy array)."""
     def __init__(self,Fname='Pics/agent_W.jpg',Power=1,Range=-1,VisionAngle=90,ControlRange=3,See=True,PdstName=None):
         """Initialize Agent
         Args:
@@ -35,7 +38,6 @@ class Agent:
             * ControlRange: The distance between agent and (food or other agents) where agent can actually make actions.
             * See: True for other agent can see through this agent , False they can't
             * PdstName:(Probability Distribution Name) The name of wanted distribution (name should be linked with Settings.IndiciesOrderTable)
-            * IAteFoodID: contain the food ID that has been eaten in the last step by this agent, -1 if non eaten
         Exception:
             * ValueError Exception: when ControlRange larger than Range
             * IOError Exception : When Fname file doesn't exist
@@ -85,7 +87,23 @@ class Agent:
         #Containt the food ID that this agent Ate.
         self.IAteFoodID=-1
         self.PrepareFieldofView()
+        
+        self.IV = np.zeros(Settings.WorldSize,dtype=int)
+        self.IV.fill(-1)
 
+    def DetectAndAstar(self):
+        """Generate Next action using explore till we find the food then use A* algorithm to create a path to the next element.
+        """
+        print 'Before'
+        print self.IV
+        t = self.borders
+        new = self.FullEgoCentric[t[0]:t[1],t[2]:t[3]]
+        self.IV =  ((self.IV==-1) * new) + ((self.IV!=-1)*self.IV)
+        AvailableFoods = self.IV[(self.IV>2000)&(self.IV<=3000)]
+        print 'After'
+        print self.IV
+        print '====================='
+        print AvailableFoods
     def DrawDirectionImage(self):
         """show an image showing all the agent direction images."""
         #plt.figure(figsize=Settings.FigureSize)
@@ -237,4 +255,8 @@ class Agent:
         self.CurrentReward=0
         self.IAteFoodID=-1
 
-    
+    def FullReset(self):
+        """ Reset the Agent information between games.
+        """
+        self.Reset()
+        self.IV.fill(-1)
