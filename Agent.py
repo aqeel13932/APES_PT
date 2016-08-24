@@ -27,7 +27,9 @@ class Agent:
         * NNFeed: Customized output (by default a list) contain what agent need as output from the world.
         * CenterPoint: Vision Field center point
         * IAteFoodID: contain the food ID that has been eaten in the last step by this agent, -1 if non eaten
-        * IV:Incremental Vision, Each step the unseen only will be updated.(used in DetectAndAstar function (2d numpy array)."""
+        * IV:Incremental Vision, Each step the unseen only will be updated.(used in DetectAndAstar function (2d numpy array).
+        * ndirection: link between (Agent location- next point) and the next action
+"""
     def __init__(self,Fname='Pics/agent_W.jpg',Power=1,Range=-1,VisionAngle=90,ControlRange=3,See=True,PdstName=None):
         """Initialize Agent
         Args:
@@ -38,7 +40,7 @@ class Agent:
             * ControlRange: The distance between agent and (food or other agents) where agent can actually make actions.
             * See: True for other agent can see through this agent , False they can't
             * PdstName:(Probability Distribution Name) The name of wanted distribution (name should be linked with Settings.IndiciesOrderTable)
-        Exception:
+                Exception:
             * ValueError Exception: when ControlRange larger than Range
             * IOError Exception : When Fname file doesn't exist
         TODO:
@@ -90,20 +92,43 @@ class Agent:
         
         self.IV = np.zeros(Settings.WorldSize,dtype=int)
         self.IV.fill(-1)
+        self.ndirection={(0,0):[],(-1,0):Settings.PossibleActions[1],(1,0):Settings.PossibleActions[0],(0,-1):Settings.PossibleActions[3],(0,1):Settings.PossibleActions[2]}
 
     def DetectAndAstar(self):
         """Generate Next action using explore till we find the food then use A* algorithm to create a path to the next element.
         """
-        print 'Before'
-        print self.IV
         t = self.borders
         new = self.FullEgoCentric[t[0]:t[1],t[2]:t[3]]
-        self.IV =  ((self.IV==-1) * new) + ((self.IV!=-1)*self.IV)
+        # Inceremental vision modifing what doesn't exist in IV only
+        #self.IV =  ((self.IV==-1) * new) + ((self.IV!=-1)*self.IV)
+
+        #Incremental vision modifing only what current vision can see.
+        self.IV = ((new==-1)*self.IV)+ ((new!=-1)*new)
         AvailableFoods = self.IV[(self.IV>2000)&(self.IV<=3000)]
-        print 'After'
-        print self.IV
-        print '====================='
-        print AvailableFoods
+        start = np.where(new==self.ID)
+        start = (start[0][0],start[1][0])
+        if (len(AvailableFoods)>0):
+            end = np.where(self.IV==AvailableFoods[0])
+            end= (end[0][0],end[1][0])       
+            self._Get_NextAction(start,end)
+        else:
+
+            tmp = np.where(self.IV==-1)
+            if len(tmp[0])>0:
+                random =np.random.randint(0,len(tmp[0])) 
+                self._Get_NextAction(start,(tmp[0][random],tmp[1][random]))
+            else:
+                self.RandomAction()
+        #print 'After'
+        #print self.IV
+
+    def _Get_NextAction(self,start,end):
+        obj=Astar(self.IV,start,end)
+        output = obj.Best_Next_Step()
+        if output:
+            self.NextAction = self.ndirection[(start[0]-output[start][0],start[1]-output[start][1])]
+            #print self.NextAction
+
     def DrawDirectionImage(self):
         """show an image showing all the agent direction images."""
         #plt.figure(figsize=Settings.FigureSize)
@@ -239,10 +264,7 @@ class Agent:
         """Generate List of Random Actions for Agent
         Args:
             * MRA: Max Random Actions (Determine the maximum number of actions)
-            * Replace: if True the actions might be repeated.
-        TODO:
-        * implement random.choice from predifined list of actions to do group of actions
-        * modify np.random.randint(1,MRA) to (0,MRA) so it may include the action nothing"""
+            * Replace: if True the actions might be repeated."""
         nsamples = np.random.randint(0,MRA)
         choices = np.random.choice(len(Settings.PossibleActions),nsamples,replace=Replace)
         try:

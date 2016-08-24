@@ -12,11 +12,13 @@ class Node:
 
 class Astar:
     def __init__(self,arr,start,end):
-        '''
-        self.arr = arr
-        self.start = start
-        self.end = end
-        '''
+        """Initialize Astar Algorithm requirements.
+        Args:
+            * arr: Array represent the world where anyvalue under 0 and above
+            3000 considered as a wall or obistacle.
+            * start:(int,int) represent the start point.
+            * end: (int,int) represent the end point or goal.
+        """
         self.arr = arr
         self.start = start
         self.end = end
@@ -34,15 +36,14 @@ class Astar:
             self.Explore(a)
             self.Closed[(a.r,a.c)]= a
         p = self.end
-        MoveMap={}
-        if not p in self.Closed.keys():
+        if not p in self.visited.keys():
             print 'no path exist found'
-            return 
+            return None
+        
+        MoveMap={}
         while p!=self.start:
             MoveMap[self.Closed[p].Father]=p
             p = self.Closed[p].Father
-            self.arr[p]=-10
-        print self.arr
         return MoveMap
     
     def isInvalidIndex(self,r,c):
@@ -54,7 +55,8 @@ class Astar:
         if r<0 or r>=self.arr.shape[0] or c<0 or c>=self.arr.shape[1] or (r,c) in self.visited.keys() or self.GoalFound:
             return True
         else:
-            if self.arr[r,c]==-1 or self.arr[r,c]>3000:
+            #if self.arr[r,c]==-1 or self.arr[r,c]>3000:
+            if self.arr[r,c]>3000:
                 return True
             return False
     
@@ -80,5 +82,5 @@ class Astar:
         return abs((a[0])-b[0])+abs((a[1])-b[1])
 #s = time()
 #x = Astar(np.zeros((10,10),dtype=int),(1,1),(8,8)) 
-#print x.Find_Best_Root()
+#print x.Best_Next_Step()
 #print time()-s

@@ -266,7 +266,6 @@ class World:
             totalrows.append(np.concatenate(cells,axis=1))
         return np.concatenate(totalrows,axis=0)
     
-    
     def _GetAgentMap(self,ID,EgoCentric=False):
         """Return map from Agent Prospective.
         Args:
@@ -544,9 +543,7 @@ class World:
                 if agents[ID].Power>agents[EnemyID].Power:
                     agents[EnemyID].CurrentReward+= rwrdschem[0]*agents[ID].Power
 
-            #Activate this if Food reward when in vision
-
-            
+            #Activate this if Food reward when in vision   
     ######## Get NN INPUT #########
     def _AgentNNInput(self,ID,EgoCentric=False):
         """Prepare variables for ANNIG variable to do it's job without the need to 'self'
@@ -554,18 +551,54 @@ class World:
             * ID: agent ID
             * EgoCentric: True:EgoCentric or False:Normal"""
         array = self._GetAgentMap(ID,EgoCentric)
-        self.agents[ID].NNFeed= self.ANNIG(ID,array,self.agents)
-    
+        self.agents[ID].NNFeed= self.ANNIG(ID,array,self.agents)    
+
     def _FindAgentOutput(self,ID,array,agents):
+        
         """ Generate the desired output for agent.NNFeed which will be provided later to neural network
         Args:
             * ID: agent ID
             * array: the world in the agent prospective
-            * agents: Dictionary (Key: agent ID, Value: Agent Object)
-        TODO:
-            * copy this function to class or __init__ documentation as example of how to build customer agent output"""
-        ls = []
+            * agents: Dictionary (Key: agent ID, Value: Agent Object)"""
+        def _agentdirection(direction):
+            """ Get a vector of current agent direction
+            Args:
+                * direction: direction ('N'or 'S' or 'W' or 'E')
+            return:
+                array (1,4) example [1,0,0,0]
+            """
+            return np.array([direction=='N',direction=='S',direction=='W',direction=='E'])
+
+        ls = {}
+
         #observed (True)/unobeserved(False) layer
-        ls.append(array!=-1)
+        ls['observed']= (array!=-1)
+
+        #My Place
+        ls['mypos']= (array==ID)
+        ls['myori']= _agentdirection( agents[ID].Direction)
+        ls['obstacles'] = (array>3000)
+        ls['food'] = np.logical_and(array>2000,array<3001)
+        #Get list of only observed agents.
+        observedagents = array[(array>1000)&(array<2000)]
+
+        for oID in agents.keys():
+            if oID == ID:
+                continue
+
+            if oID in observedagents:
+                ls['agentpos{}'.format(oID)]= (array==oID)
+                ls['agentori{}'.format(oID)]= _agentdirection(agents[oID].Direction)
+            else:
+                ls['agent{}'.format(oID)]= np.zeros(array.shape)# (array==oID)
+                ls['agentori{}'.format(oID)]=np.array([0,0,0,0])
+        '''
+        if ID==1001:
+            print observedagents
+            for key in ls.keys():
+                print key
+                print ls[key]
+            print 'original array'
+            print array
+        '''
         return ls
-        #print ls[0]
