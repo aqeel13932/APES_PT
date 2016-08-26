@@ -214,6 +214,7 @@ class World:
         self.AfterEndSteps = [self.AES]
         self.Terminated = [False]
         self.world.fill(0)
+        map(lambda x: self.agents[x].FullReset(),self.agents.keys())
         self.PlaceAgents()
         self.PlaceFoods()
         self.PlaceObstacles()
