@@ -39,9 +39,6 @@ class Settings:
     #World Size
     WorldSize=(20,20)
 
-    # Max Steps Per Episode
-    MaxSteps = 1000
-
     #Figure Size
     FigureSize = (10,10)
 

@@ -19,11 +19,14 @@ class World:
         * AES: constant number of steps where the game continue even if the food had been eaten.
         * AfterEndSteps: one element array represent number of steps where the game continue even if the food had been eaten (by ref value change each step.)
         * Terminated: one element array represent the status of the game.
+        * StepsLimit: maximum number of steps for the game to terminate.
+        * StepsCounter: the number of steps up to now.
+        * Limited: identify if this game is limited by steps number or not.
     TODO:
         * Improve function _GetVisionBorders by removing all if statements in that function.
             and replace it with dictinary someway.
     """
-    def __init__(self,ANNIG=None,RewardsScheme=[-10,10,-1],RewardFunction=None,AES=0):
+    def __init__(self,ANNIG=None,RewardsScheme=[-10,10,-1],RewardFunction=None,AES=0,StepsLimit=None):
         """Description: Initialize the world depending on the settings from Settings.py file
         IMPORTANT: AGENTS ARE ORDERED DICTIONARY, SO IF ORDER IMPORTANT ORDER THEM IN INPUT LIST (MORE POWERFUL BEFORE THE WEAK OR OPPIST DEPENDING ON YOUR NEED)
         Args:
@@ -32,7 +35,8 @@ class World:
             * RewardsScheme: [Punishment Factor (agents meet) ,Reward Factor(Food in Range), Punishement per Step]
             * RewardFunction: Function responsible to distribute reward and punishments on agents, info about the parameters from _EstimateRewards
                     EXAMPLE FUNCTION (Default at version 0.1): Check _EstimateRewards
-            * AES: (After End Steps) number of steps to keep the game going while no food exist."""
+            * AES: (After End Steps) number of steps to keep the game going while no food exist.
+            * StepsLimit: maximum number of steps for the game to terminate,Default is none (unlimited)."""
         self.agents = OrderedDict()
         self.foods={}
         self.obstacles = {}
@@ -56,6 +60,11 @@ class World:
         self.AES = AES
         self.AfterEndSteps = [AES]
         self.Terminated = [False]
+        self.Limited=False
+        if StepsLimit:
+            self.StepsLimit= StepsLimit
+            self.Limited=True
+        self.StepCounter=0
     def AddAgents(self,agents):
         """Add List of Agents to the world
         Args:
@@ -211,6 +220,7 @@ class World:
 
     def GenerateWorld(self):
         """Description: Generate the world depending on the inserted data"""
+        self.StepCounter=0
         self.AfterEndSteps = [self.AES]
         self.Terminated = [False]
         self.world.fill(0)
@@ -284,11 +294,14 @@ class World:
     #### Main Function Consume All Agents NextActions #######
     def Step(self):
         """Execute all agents actions, calculate there vision, and ditribute rewards"""
+        self.StepCounter+=1
         map(lambda x:self.agents[x].Reset(),self.agents.keys())
         map(lambda x:self._ConsumAgentActions(x),self.agents.keys())
         map(lambda x:self._GetTotalVision(x),self.agents.keys())
         map(lambda x:self._AgentNNInput(x),self.agents.keys())
         self.RF(self.agents,self.foods,self.RewardsScheme,self.world,self.AfterEndSteps,self.Terminated)
+        if self.Limited:
+            self.Terminated[0]= (self.Limited and (self.StepsLimit<self.StepCounter)) or self.Terminated[0]
 
     def _ConsumAgentActions(self,ID):
         """ Consume and clear agent actions queue
@@ -561,6 +574,7 @@ class World:
             * ID: agent ID
             * array: the world in the agent prospective
             * agents: Dictionary (Key: agent ID, Value: Agent Object)"""
+
         def _agentdirection(direction):
             """ Get a vector of current agent direction
             Args:
