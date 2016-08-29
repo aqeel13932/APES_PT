@@ -89,24 +89,20 @@ class World:
         for a in obstacles:
             self.obstacles[a.ID]= a
 
-    #Randomly get and an index of empty place
+    #mly get and an index of empty place
     def GetRandomPlace(self):
         """Get occupied random place from world map
         Return: row,column"""
-
-        found = False
-
-        #Generate exception when the map is full
-        if np.sum(self.world==0)<1:
-            raise Exception('World Map is full')
-
-        #Possible enhancement to pick random choice only from the empty places.
-        while not found:
-            r = np.random.choice(self.world.shape[0],1)
-            c = np.random.choice(self.world.shape[1],1)
-            if self.world[r,c]==0:
-                found=True
-        return r[0],c[0]
+        #Another implementation of the method
+        zeros = np.where(self.world==0)
+        #print zeros
+        if len(zeros[0])<1:
+            raise Exception('World Map is Full')
+        coords =  np.random.randint(0,len(zeros[0]))
+        #print coords,len(zeros[0]),zeros[0][coords],zeros[1][coords]
+        r = zeros[0][coords]
+        c=zeros[1][coords]
+        return r,c
 
     #Get domain around center in case of odd number
     @staticmethod
@@ -261,14 +257,14 @@ class World:
             totalrows.append(np.concatenate(cells,axis=1))
         return np.concatenate(totalrows,axis=0)
 
-    def AgentViewPoint(self,ID,EgoCentric=False):
+    def AgentViewPoint(self,ID):
         """Build image from agent prespictive
         Args:
             * ID: agent ID
             * EgoCentric: True EgoCentric View , False: Normal map view
         Return: 
             * ((WorldSize * BlockSize)*3) Image"""
-        array = self._GetAgentMap(ID,EgoCentric)
+        array = self._GetAgentMap(ID)
         totalrows=[]
         for row in range(array.shape[0]):
             cells=[]
@@ -277,7 +273,7 @@ class World:
             totalrows.append(np.concatenate(cells,axis=1))
         return np.concatenate(totalrows,axis=0)
     
-    def _GetAgentMap(self,ID,EgoCentric=False):
+    def _GetAgentMap(self,ID):
         """Return map from Agent Prospective.
         Args:
             * ID: agent ID
@@ -285,7 +281,7 @@ class World:
         Return: 
             * Array [worldsize/(2*worldsize -1)]"""
         agnt = self.agents[ID]
-        if EgoCentric:
+        if agnt.EgoCentric:
             array =agnt.FullEgoCentric
         else:
             array = agnt.FullEgoCentric[agnt.borders[0]:agnt.borders[1],agnt.borders[2]:agnt.borders[3]]
@@ -308,8 +304,6 @@ class World:
         Args:
             * ID: Agent ID"""
         map(lambda x: self.DoAction(ID,x),self.agents[ID].NextAction)
-        #Agents Previous move will be removed in Reward
-        #self.agents[ID].NextAction = []
     
     ########## Agent Actions ###########
     # General Agent Action # 
@@ -502,7 +496,6 @@ class World:
             Cmax = Cmax if Cmax<=shape[1] else shape[1]
         return  Rmin,Rmax,Cmin,Cmax
             
-    
     ######## Get Agent Reward #####
     def _EstimateRewards(self,agents,foods,rwrdschem,world,AES,Terminated):
         """Calculate All agents rewards
@@ -559,12 +552,12 @@ class World:
 
             #Activate this if Food reward when in vision   
     ######## Get NN INPUT #########
-    def _AgentNNInput(self,ID,EgoCentric=False):
+    def _AgentNNInput(self,ID):
         """Prepare variables for ANNIG variable to do it's job without the need to 'self'
         Args:
             * ID: agent ID
             * EgoCentric: True:EgoCentric or False:Normal"""
-        array = self._GetAgentMap(ID,EgoCentric)
+        array = self._GetAgentMap(ID)
         self.agents[ID].NNFeed= self.ANNIG(ID,array,self.agents)    
 
     def _FindAgentOutput(self,ID,array,agents):
@@ -607,13 +600,4 @@ class World:
             else:
                 ls['agent{}'.format(oID)]= np.zeros(array.shape)# (array==oID)
                 ls['agentori{}'.format(oID)]=np.array([0,0,0,0])
-        '''
-        if ID==1001:
-            print observedagents
-            for key in ls.keys():
-                print key
-                print ls[key]
-            print 'original array'
-            print array
-        '''
         return ls

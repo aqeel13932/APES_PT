@@ -30,7 +30,7 @@ class Agent:
         * IV:Incremental Vision, Each step the unseen only will be updated.(used in DetectAndAstar function (2d numpy array).
         * ndirection: link between (Agent location- next point) and the next action
 """
-    def __init__(self,Fname='Pics/agent_W.jpg',Power=1,Range=-1,VisionAngle=90,ControlRange=3,See=True,PdstName=None):
+    def __init__(self,Fname='Pics/agent_W.jpg',Power=1,Range=-1,VisionAngle=90,ControlRange=3,See=True,PdstName=None,EgoCentric=False):
         """Initialize Agent
         Args:
             * Fname: Location of the image 'Pics/agent_W.jpg' (shoud be looking to East)
@@ -40,6 +40,7 @@ class Agent:
             * ControlRange: The distance between agent and (food or other agents) where agent can actually make actions.
             * See: True for other agent can see through this agent , False they can't
             * PdstName:(Probability Distribution Name) The name of wanted distribution (name should be linked with Settings.IndiciesOrderTable)
+            * EgoCentric: Define the vision of the agent (True: Egocentric , False: Centric).
                 Exception:
             * ValueError Exception: when ControlRange larger than Range
             * IOError Exception : When Fname file doesn't exist
@@ -89,7 +90,7 @@ class Agent:
         #Containt the food ID that this agent Ate.
         self.IAteFoodID=-1
         self.PrepareFieldofView()
-        
+        self.EgoCentric=EgoCentric
         self.IV = np.zeros(Settings.WorldSize,dtype=int)
         self.IV.fill(-1)
         self.ndirection={(0,0):[],(-1,0):Settings.PossibleActions[1],(1,0):Settings.PossibleActions[0],(0,-1):Settings.PossibleActions[3],(0,1):Settings.PossibleActions[2]}
@@ -107,20 +108,18 @@ class Agent:
         AvailableFoods = self.IV[(self.IV>2000)&(self.IV<=3000)]
         start = np.where(new==self.ID)
         start = (start[0][0],start[1][0])
+
         if (len(AvailableFoods)>0):
             end = np.where(self.IV==AvailableFoods[0])
             end= (end[0][0],end[1][0])       
             self._Get_NextAction(start,end)
         else:
-
             tmp = np.where(self.IV==-1)
             if len(tmp[0])>0:
-                random =np.random.randint(0,len(tmp[0])) 
+                random =np.random.randint(0,len(tmp[0]))
                 self._Get_NextAction(start,(tmp[0][random],tmp[1][random]))
             else:
                 self.RandomAction()
-        #print 'After'
-        #print self.IV
 
     def _Get_NextAction(self,start,end):
         obj=Astar(self.IV,start,end)
