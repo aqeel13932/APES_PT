@@ -89,7 +89,7 @@ class World:
         for a in obstacles:
             self.obstacles[a.ID]= a
 
-    #mly get and an index of empty place
+    #Randomly get and an index of empty place
     def GetRandomPlace(self):
         """Get occupied random place from world map
         Return: row,column"""
