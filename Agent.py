@@ -277,7 +277,13 @@ class Agent:
         self.IAteFoodID=-1
 
     def FullReset(self):
-        """ Reset the Agent information between games.
-        """
+        """ Reset the Agent information between games."""
         self.Reset()
         self.IV.fill(-1)
+    def Flateoutput(self):
+        """Flatten NNfeed for current agent
+        Return:
+            1d numpy array of flatten concatenated arrays in NNFeed """
+        return np.concatenate(map(lambda x: self.NNFeed[x].flatten(),self.NNFeed.keys()))
+#        for i in self.NNFeed.keys():
+
