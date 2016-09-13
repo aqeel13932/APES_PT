@@ -576,8 +576,9 @@ class World:
                 array (1,4) example [1,0,0,0]
             """
             return np.array([direction=='N',direction=='S',direction=='W',direction=='E'])
-
-        ls = {}
+        #Used Ordered here so the output keys will be always in the same manner in case the values
+        # feed to some network they will always be in same order.
+        ls = OrderedDict()
 
         #observed (True)/unobeserved(False) layer
         ls['observed']= (array!=-1)
@@ -598,6 +599,6 @@ class World:
                 ls['agentpos{}'.format(oID)]= (array==oID)
                 ls['agentori{}'.format(oID)]= _agentdirection(agents[oID].Direction)
             else:
-                ls['agent{}'.format(oID)]= np.zeros(array.shape)# (array==oID)
+                ls['agentpos{}'.format(oID)]= np.zeros(array.shape)# (array==oID)
                 ls['agentori{}'.format(oID)]=np.array([0,0,0,0])
         return ls
