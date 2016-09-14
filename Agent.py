@@ -259,17 +259,17 @@ class Agent:
         #print 'Range:{},Level:{},TDPP:{},COUNT:{}'.format(self.VA,Level,TDPP,Count)
         return Count
     
-    def RandomAction(self,MRA=2,Replace=False):
-        """Generate List of Random Actions for Agent
-        Args:
-            * MRA: Max Random Actions (Determine the maximum number of actions)
-            * Replace: if True the actions might be repeated."""
-        nsamples = np.random.randint(0,MRA)
-        choices = np.random.choice(len(Settings.PossibleActions),nsamples,replace=Replace)
+    def RandomAction(self):
+        """Generate List of Random Actions for Agent"""
+        nsamples = np.random.randint(0,2)
+        choices = np.random.choice(len(Settings.PossibleActions),nsamples)
         try:
             self.NextAction =  Settings.PossibleActions[choices][0]
+            return choices
         except IndexError:
             self.NextAction=[]
+            return Settings.PossibleActions.shape[0]+1
+
     
     def Reset(self):
         """Reset agent information before each step"""
