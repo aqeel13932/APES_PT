@@ -265,7 +265,7 @@ class Agent:
         choices = np.random.choice(len(Settings.PossibleActions),nsamples)
         try:
             self.NextAction =  Settings.PossibleActions[choices][0]
-            return choices
+            return choices[0]
         except IndexError:
             self.NextAction=[]
             return Settings.PossibleActions.shape[0]+1
@@ -280,6 +280,7 @@ class Agent:
         """ Reset the Agent information between games."""
         self.Reset()
         self.IV.fill(-1)
+        self.FullEgoCentric.fill(-1) 
     def Flateoutput(self):
         """Flatten NNfeed for current agent
         Return:
