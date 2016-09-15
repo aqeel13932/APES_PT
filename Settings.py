@@ -49,7 +49,7 @@ class Settings:
     AllPossibleActions = np.array([['R','L'],['R','R'],['L','N'],['L','S'],['L','E'],['L','W'],\
     ['M','N'],['M','S'],['M','E'],['M','W']])
     #List of Action that we pick from randomly 
-    PossibleActions = np.array([[['L','N'],['M','N']],[['L','S'],['M','S']],[['L','E'],['M','E']],[['L','W'],['M','W']]])
+    PossibleActions = np.array([[['L','N'],['M','N']],[['L','S'],['M','S']],[['L','E'],['M','E']],[['L','W'],['M','W']],[]])
 
     @staticmethod
     def AddProbabilityDistribution(Name,IntProbabilityDst):
