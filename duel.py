@@ -25,7 +25,7 @@ parser.add_argument('--train_repeat', type=int, default=10)
 parser.add_argument('--gamma', type=float, default=0.99)
 parser.add_argument('--tau', type=float, default=0.001)
 parser.add_argument('--episodes', type=int, default=200)
-parser.add_argument('--max_timesteps', type=int, default=200)
+parser.add_argument('--max_timesteps', type=int, default=1000)
 parser.add_argument('--activation', choices=['tanh', 'relu'], default='tanh')
 parser.add_argument('--optimizer', choices=['adam', 'rmsprop'], default='adam')
 #parser.add_argument('--optimizer_lr', type=float, default=0.001)
@@ -34,7 +34,6 @@ parser.add_argument('--advantage', choices=['naive', 'max', 'avg'], default='nai
 parser.add_argument('--display', action='store_true', default=True)
 parser.add_argument('--no_display', dest='display', action='store_false')
 parser.add_argument('--gym_record')
-parser.add_argument('environment')
 args = parser.parse_args()
 
 def SetupEnvironment():  
@@ -69,57 +68,58 @@ def SetupEnvironment():
 	obs = Obstacles('Wall',Shape=np.array([[1],[1],[1],[1]]),PdstName='Obs')
 	food = Foods('Food',PdstName='food')
 	
-	ragnt = Agent(Fname='Pics/ragent.jpg',Power=3,VisionAngle=90,Range=3,PdstName='ragnt')
+	ragnt = Agent(Fname='Pics/ragent.jpg',Power=3,VisionAngle=180,Range=-1,PdstName='ragnt')
 	gagnt = Agent(Fname='Pics/gagent.jpg',VisionAngle=180,Range=1,ControlRange=0,PdstName='gagnt')
 	
 	game = World(AES=5)
 	#Adding Agents in Order of Following the action
-	game.AddAgents([ragnt,gagnt])
+	game.AddAgents([ragnt])#,gagnt])
 	game.AddObstacles([obs])
 	game.AddFoods([food])
 	Start = time()-Start
 	print 'Taken:',Start
 	return game
 
-def createLayers(ishape,naction):
-  x = Input(shape=ishape)#env.observation_space.shape)
-  if args.batch_norm:
-    h = BatchNormalization()(x)
-  else:
-    h = x
-  for i in xrange(args.layers):
-    h = Dense(args.hidden_size, activation=args.activation)(h)
-    if args.batch_norm and i != args.layers - 1:
-      h = BatchNormalization()(h)
-  y = Dense(naction + 1)(h)
-  if args.advantage == 'avg':
-    z = Lambda(lambda a: K.expand_dims(a[:,0], dim=-1) + a[:,1:] - K.mean(a[:, 1:], keepdims=True), output_shape=(naction,))(y)
-  elif args.advantage == 'max':
-    z = Lambda(lambda a: K.expand_dims(a[:,0], dim=-1) + a[:,1:] - K.max(a[:, 1:], keepdims=True), output_shape=(naction,))(y)
-  elif args.advantage == 'naive':
-    z = Lambda(lambda a: K.expand_dims(a[:,0], dim=-1) + a[:,1:], output_shape=(naction,))(y)
-  else:
-    assert False
+def createLayers(insize,naction):
+    x = Input(shape=insize)#env.observation_space.shape)
+    if args.batch_norm:
+      h = BatchNormalization()(x)
+    else:
+      h = x
+    for i in xrange(args.layers):
+      h = Dense(args.hidden_size, activation=args.activation)(h)
+      if args.batch_norm and i != args.layers - 1:
+        h = BatchNormalization()(h)
+    y = Dense(naction + 1)(h)
+    if args.advantage == 'avg':
+      z = Lambda(lambda a: K.expand_dims(a[:,0], dim=-1) + a[:,1:] - K.mean(a[:, 1:], keepdims=True), output_shape=(naction,))(y)
+    elif args.advantage == 'max':
+      z = Lambda(lambda a: K.expand_dims(a[:,0], dim=-1) + a[:,1:] - K.max(a[:, 1:], keepdims=True), output_shape=(naction,))(y)
+    elif args.advantage == 'naive':
+      z = Lambda(lambda a: K.expand_dims(a[:,0], dim=-1) + a[:,1:], output_shape=(naction,))(y)
+    else:
+      assert False
 
-  return x, z
- 
+    return x, z
+
 game = SetupEnvironment()
+AIAgent = game.agents[1001]
 '''
 input size :
 Worldsize*(Agents Count+3)+Agents Count *4
 '''
-ishape =Settings.WorldSize[0]*Settings.WorldSize[1]*(len(game.agents)+3)+ len(game.agents)*4
-naction =  Settings.PossibleActions.shape[0]+1 # actions count + do nothing action
-x, z = createLayers([ishape],naction)
+ishape =(Settings.WorldSize[0]*Settings.WorldSize[1]*(len(game.agents)+3)+ len(game.agents)*4,)
+game.GenerateWorld()
+game.Step()
+naction =  Settings.PossibleActions.shape[0]
+x, z = createLayers(ishape,naction)
 model = Model(input=x, output=z)
 model.summary()
 model.compile(optimizer='adam', loss='mse')
 
-x, z = createLayers([ishape],naction)
+x, z = createLayers(ishape,naction)
 target_model = Model(input=x, output=z)
 target_model.set_weights(model.get_weights())
-
-'''
 prestates = []
 actions = []
 rewards = []
@@ -128,46 +128,51 @@ terminals = []
 
 total_reward = 0
 for i_episode in xrange(args.episodes):
-    observation = env.reset()
-    episode_reward = 0
+    game.GenerateWorld()
+    #First Step only do the calculation of the current observations for all agents
+    game.Step()
+    episode_reward=0
+    observation = AIAgent.Flateoutput()
     for t in xrange(args.max_timesteps):
-        if args.display:
-          env.render()
-
         if np.random.random() < args.exploration:
-          action = env.action_space.sample()
+          action =AIAgent.RandomAction()
         else:
-          s = np.array([observation])
+          s =np.array([observation])
           q = model.predict(s, batch_size=1)
           #print "q:", q
           action = np.argmax(q[0])
         #print "action:", action
-
         prestates.append(observation)
         actions.append(action)
-
-        observation, reward, done, info = env.step(action)
+        AIAgent.NextAction = Settings.PossibleActions[action]
+        game.Step()
+        observation = AIAgent.Flateoutput()
+        reward = AIAgent.CurrentReward
+        done = game.Terminated[0]
+        #observation, reward, done, info = env.step(action)
         episode_reward += reward
         #print "reward:", reward
 
         rewards.append(reward)
         poststates.append(observation)
         terminals.append(done)
-
         if len(prestates) > args.min_train:
           for k in xrange(args.train_repeat):
             if len(prestates) > args.batch_size:
               indexes = np.random.choice(len(prestates), size=args.batch_size)
             else:
               indexes = range(len(prestates))
-
             qpre = model.predict(np.array(prestates)[indexes])
             qpost = model.predict(np.array(poststates)[indexes])
             for i in xrange(len(indexes)):
               if terminals[indexes[i]]:
-                qpre[i, actions[indexes[i]]] = rewards[indexes[i]]
+                  qpre[i, actions[indexes[i]]] = rewards[indexes[i]]
               else:
-                qpre[i, actions[indexes[i]]] = rewards[indexes[i]] + args.gamma * np.amax(qpost[i])
+                  try:
+                      qpre[i, actions[indexes[i]]] = rewards[indexes[i]] + args.gamma * np.amax(qpost[i])
+                  except Exception as ex:
+                      print 'qpre.shape:{},i:{},actions:{}'.format(qpre.shape,i,actions[indexes[i]])
+
             model.train_on_batch(np.array(prestates)[indexes], qpre)
 
             weights = model.get_weights()
@@ -184,6 +189,3 @@ for i_episode in xrange(args.episodes):
 
 print "Average reward per episode {}".format(total_reward / args.episodes)
 
-if args.gym_record:
-env.monitor.close()
-'''
