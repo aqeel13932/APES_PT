@@ -261,14 +261,14 @@ class Agent:
     
     def RandomAction(self):
         """Generate List of Random Actions for Agent"""
-        nsamples = np.random.randint(0,2)
-        choices = np.random.choice(len(Settings.PossibleActions),nsamples)
+        choices = np.random.choice(len(Settings.PossibleActions))
         try:
-            self.NextAction =  Settings.PossibleActions[choices][0]
-            return choices[0]
+            self.NextAction =  Settings.PossibleActions[choices]
+            return choices
         except IndexError:
+            
             self.NextAction=[]
-            return Settings.PossibleActions.shape[0]+1
+            return Settings.PossibleActions.shape[0]
 
     
     def Reset(self):
