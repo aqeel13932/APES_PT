@@ -1,0 +1,2 @@
+1473986473
+layers,1:tau,0.001:optimizer,adam:advantage,naive:max_timesteps,1000:gym_record,None:activation,tanh:batch_size,100:episodes,200:exploration,0.1:gamma,0.99:hidden_size,100:train_repeat,10:display,True:min_train,10:batch_norm,False:

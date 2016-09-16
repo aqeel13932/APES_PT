@@ -35,7 +35,16 @@ parser.add_argument('--display', action='store_true', default=True)
 parser.add_argument('--no_display', dest='display', action='store_false')
 parser.add_argument('--gym_record')
 args = parser.parse_args()
+File_Signature = int(round(time()))
+line = ''.join(map(lambda x: '{},{}:'.format(x,getattr(args,x)),vars(args)))
+with open ('output/features.results.out','a') as f:
+    f.write('{}\n{}\n'.format(File_Signature,line))
 
+def WriteInfo(epis,t,epis_rwrd):
+    global File_Signature
+    with open('output/exp_{}.csv'.format(File_Signature),'a') as outp:
+        outp.write('{},{},{}\n'.format(epis,t,epis_rwrd))
+        
 def SetupEnvironment():  
 	Start = time()
 	
@@ -184,6 +193,7 @@ for i_episode in xrange(args.episodes):
         if done:
             break
 
+    WriteInfo(i_episode+1,t+1,episode_reward)
     print "Episode {} finished after {} timesteps, episode reward {}".format(i_episode + 1, t + 1, episode_reward)
     total_reward += episode_reward
 
