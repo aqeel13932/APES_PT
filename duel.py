@@ -1,7 +1,7 @@
 import argparse
 import gym
 from gym.spaces import Box, Discrete
-from keras.models import Model
+from keras.models import Model,load_model
 from keras.layers import Input, Dense, Lambda
 from keras.layers.normalization import BatchNormalization
 from keras import backend as K
@@ -13,7 +13,6 @@ from Agent import *
 from Obstacles import *
 from Foods import *
 from time import time
-
 parser = argparse.ArgumentParser()
 parser.add_argument('--batch_size', type=int, default=100)
 parser.add_argument('--hidden_size', type=int, default=100)
@@ -24,7 +23,7 @@ parser.add_argument('--min_train', type=int, default=10)
 parser.add_argument('--train_repeat', type=int, default=10)
 parser.add_argument('--gamma', type=float, default=0.99)
 parser.add_argument('--tau', type=float, default=0.001)
-parser.add_argument('--episodes', type=int, default=200)
+parser.add_argument('--episodes', type=int, default=2)
 parser.add_argument('--max_timesteps', type=int, default=1000)
 parser.add_argument('--activation', choices=['tanh', 'relu'], default='tanh')
 parser.add_argument('--optimizer', choices=['adam', 'rmsprop'], default='adam')
@@ -35,6 +34,7 @@ parser.add_argument('--display', action='store_true', default=True)
 parser.add_argument('--no_display', dest='display', action='store_false')
 parser.add_argument('--gym_record')
 args = parser.parse_args()
+
 File_Signature = int(round(time()))
 line = ''.join(map(lambda x: '{},{}:'.format(x,getattr(args,x)),vars(args)))
 with open ('output/features.results.out','a') as f:
@@ -42,7 +42,7 @@ with open ('output/features.results.out','a') as f:
 
 def WriteInfo(epis,t,epis_rwrd):
     global File_Signature
-    with open('output/exp_{}.csv'.format(File_Signature),'a') as outp:
+    with open('output/{}/exp_details.csv'.format(File_Signature),'a') as outp:
         outp.write('{},{},{}\n'.format(epis,t,epis_rwrd))
         
 def SetupEnvironment():  
@@ -80,7 +80,7 @@ def SetupEnvironment():
 	ragnt = Agent(Fname='Pics/ragent.jpg',Power=3,VisionAngle=180,Range=-1,PdstName='ragnt')
 	gagnt = Agent(Fname='Pics/gagent.jpg',VisionAngle=180,Range=1,ControlRange=0,PdstName='gagnt')
 	
-	game = World(AES=5)
+	game = World()
 	#Adding Agents in Order of Following the action
 	game.AddAgents([ragnt])#,gagnt])
 	game.AddObstacles([obs])
@@ -136,13 +136,19 @@ poststates = []
 terminals = []
 
 total_reward = 0
+if not os.path.exists('output/{}'.format(File_Signature)):
+        os.makedirs('output/{}'.format(File_Signature))
 for i_episode in xrange(args.episodes):
     game.GenerateWorld()
     #First Step only do the calculation of the current observations for all agents
     game.Step()
+    #Recording Video
+    imgs = []
+    plt.imsave('output/{}/{}.png'.format(File_Signature,i_episode+1),game.BuildImage())
     episode_reward=0
     observation = AIAgent.Flateoutput()
     for t in xrange(args.max_timesteps):
+        imgs.append(game.BuildImage())
         if np.random.random() < args.exploration:
           action =AIAgent.RandomAction()
         else:
@@ -193,9 +199,14 @@ for i_episode in xrange(args.episodes):
         if done:
             break
 
+
     WriteInfo(i_episode+1,t+1,episode_reward)
     print "Episode {} finished after {} timesteps, episode reward {}".format(i_episode + 1, t + 1, episode_reward)
     total_reward += episode_reward
+    print "Saving Video"
+    imgs.append(game.BuildImage())
+    Settings.ani_frame(imgs,fps=60,name='output/{}/{}_{}_{}'.format(File_Signature,i_episode+1,t+1,episode_reward))
+    print "Done Saving"
 
 print "Average reward per episode {}".format(total_reward / args.episodes)
-
+model.save('output/{}/model.h5'.format(File_Signature))

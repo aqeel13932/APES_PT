@@ -141,7 +141,7 @@ class Settings:
         Settings.Images[-1]=np.tile(0,(Settings.BlockSize[0],Settings.BlockSize[1],3)) # black or unobservable
     
     @staticmethod
-    def ani_frame(rimages=[],fps=2,dpi = 100,name='demo'):
+    def ani_frame(rimages=[],fps=60,dpi = 100,name='demo'):
         """Create Videom from list of images
         Args:
             * rimages: list of images
