@@ -40,19 +40,19 @@ line = ''.join(map(lambda x: '{},{}:'.format(x,getattr(args,x)),vars(args)))
 with open ('output/features.results.out','a') as f:
     f.write('{}\n{}\n'.format(File_Signature,line))
 
-def WriteInfo(epis,t,epis_rwrd):
+def WriteInfo(epis,t,epis_rwrd,start):
     global File_Signature
     with open('output/{}/exp_details.csv'.format(File_Signature),'a') as outp:
-        outp.write('{},{},{}\n'.format(epis,t,epis_rwrd))
-        
-def SetupEnvironment():  
+        outp.write('{},{},{},{}\n'.format(epis,t,epis_rwrd,start))
+
+def SetupEnvironment():
 	Start = time()
-	
+
 	#Add Pictures
 	Settings.SetBlockSize(20)
 	Settings.AddImage('Wall','Pics/wall.jpg')
 	Settings.AddImage('Food','Pics/food.jpg')
-	
+
 	#Specify World Size
 	Settings.WorldSize=(11,11)
 
@@ -72,14 +72,14 @@ def SetupEnvironment():
 	Settings.AddProbabilityDistribution('ragnt',ragnt)
 	Settings.AddProbabilityDistribution('gagnt',gagnt)
 	Settings.AddProbabilityDistribution('food',food)
-	
+
 	#Create World Elements
 	obs = Obstacles('Wall',Shape=np.array([[1],[1],[1],[1]]),PdstName='Obs')
 	food = Foods('Food',PdstName='food')
-	
+
 	ragnt = Agent(Fname='Pics/ragent.jpg',Power=3,VisionAngle=180,Range=-1,PdstName='ragnt')
 	gagnt = Agent(Fname='Pics/gagent.jpg',VisionAngle=180,Range=1,ControlRange=0,PdstName='gagnt')
-	
+
 	game = World()
 	#Adding Agents in Order of Following the action
 	game.AddAgents([ragnt])#,gagnt])
@@ -134,21 +134,27 @@ actions = []
 rewards = []
 poststates = []
 terminals = []
-
+#Framse Size
+fs = (Settings.WorldSize[0]*Settings.BlockSize[0],Settings.WorldSize[1]*Settings.BlockSize[1])
+#Video Encoding
+fourcc= cv2.VideoWriter_fourcc(*'FFV1')
 total_reward = 0
 if not os.path.exists('output/{}'.format(File_Signature)):
         os.makedirs('output/{}'.format(File_Signature))
 for i_episode in xrange(args.episodes):
+    Start = time()
+    out = cv2.VideoWriter('output/{}/{}.avi'.format(File_Signature,i_episode+1),fourcc,60,fs)
     game.GenerateWorld()
     #First Step only do the calculation of the current observations for all agents
     game.Step()
     #Recording Video
-    imgs = []
-    plt.imsave('output/{}/{}.png'.format(File_Signature,i_episode+1),game.BuildImage())
+    img =game.BuildImage()
+    plt.imsave('output/{}/{}.png'.format(File_Signature,i_episode+1),img)
     episode_reward=0
     observation = AIAgent.Flateoutput()
     for t in xrange(args.max_timesteps):
-        imgs.append(game.BuildImage())
+        img = game.BuildImage()
+        out.write(cv2.cvtColor(np.array(img*255,dtype=np.uint8),cv2.COLOR_RGB2BGR))
         if np.random.random() < args.exploration:
           action =AIAgent.RandomAction()
         else:
@@ -200,13 +206,16 @@ for i_episode in xrange(args.episodes):
             break
 
 
-    WriteInfo(i_episode+1,t+1,episode_reward)
-    print "Episode {} finished after {} timesteps, episode reward {}".format(i_episode + 1, t + 1, episode_reward)
+
+    Start = time()-Start
+    WriteInfo(i_episode+1,t+1,episode_reward,Start)
+    print "Episode {} finished after {} timesteps, episode reward {} Tooks {}s".format(i_episode + 1, t + 1, episode_reward,Start)
     total_reward += episode_reward
     print "Saving Video"
-    imgs.append(game.BuildImage())
-    Settings.ani_frame(imgs,fps=60,name='output/{}/{}_{}_{}'.format(File_Signature,i_episode+1,t+1,episode_reward))
-    print "Done Saving"
-
+    out.write(cv2.cvtColor(np.array(game.BuildImage()*255,dtype=np.uint8),cv2.COLOR_RGB2BGR))
+    out.release()
+    print "Saving Done"
+    if (i_episode%10)==0:
+        model.save('output/{}/model_{}.h5'.format(File_Signature,i_episode+1))
 print "Average reward per episode {}".format(total_reward / args.episodes)
 model.save('output/{}/model.h5'.format(File_Signature))
