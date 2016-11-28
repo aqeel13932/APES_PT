@@ -91,4 +91,5 @@ if __name__ == "__main__":
     x= np.zeros((4,4))
     x[2,2]=3000
     print(DPMP(x,(0,0),(3,3),10))
+    print(DPMP(x,(0,0),(3,3),10))
 
