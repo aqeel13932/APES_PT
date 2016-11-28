@@ -59,10 +59,15 @@ ID,layers,tau,optimizer,advantage,max_timesteps,gym_record,activation,batch_size
 58,1,0.01,adam,avg,1000,None,relu,10,200,0.1,0.99,100,10,True,10,False,"[-1.0, 1.0, -0.1]",Static Env
 59,1,0.01,adam,avg,1000,None,relu,10,200,0.1,0.99,100,10,True,10,False,"[-1.0, 1.0, -0.1]",Water walls
 60,1,0.01,adam,avg,1000,None,relu,10,200,0.1,0.99,100,10,True,10,False,"[-1.0, 1.0, -0.1]","V360,water walls, static env"
-61,1,0.01,adam,avg,1000,None,relu,10,1000,0.1,0.99,100,10,True,10,False,",[-1.0, 1.0, -0.1]","E7 1000 Episode Delete me later"
+61,1,0.01,adam,avg,1000,None,relu,10,1000,0.1,0.99,100,10,True,10,False,",[-1.0, 1.0, -0.1]",
 62,1,0.01,adam,avg,1000,None,relu,10,200,0.1,0.99,100,10,True,10,False,"[-1.0, 1.0, -0.1]",different SE
 63,1,0.01,adam,avg,1000,None,relu,10,200,0.1,0.99,100,10,True,10,False,"[-1.0, 1.0, -0.1]",SE - water - 180v
 65,1,0.01,adam,avg,1000,None,relu,10,200,0.1,0.99,100,10,True,10,False,"[-1.0, 1.0, -0.1]",SE - solid - 350v
+66,1,0.01,adam,avg,1000,None,relu,10,200,0.1,0.99,100,10,True,10,False,"[-1.0, 1.0, -0.1]",Vision 90
+71,1,0.01,adam,avg,1000,None,relu,10,200,0.1,0.99,100,10,True,10,False,"[-1.0, 1.0, -0.1]",Replication of Experiment E7
+72,1,0.01,adam,avg,1000,None,relu,10,1000,0.1,0.99,100,10,True,10,False,"[-1.0, 1.0, -0.1]",
+73,1,0.01,adam,avg,1000,None,relu,10,200,0.1,0.99,100,10,True,10,False,"[-10.0, 10.0, -1.0]",
+74,1,0.01,adam,avg,1000,None,relu,10,200,0.1,0.99,100,10,True,10,False,"[-10.0, 1000.0, -1.0]",
 1474081040,1,0.001,adam,naive,1000,None,tanh,100,1200,0.1,0.99,100,10,True,10,False,"[-1,10,-1]",
 1474931636,1,0.01,adam,naive,1000,None,tanh,100,200,0.1,0.99,100,10,True,10,False,"[-1,10,-1]",
 1476452872,1,0.001,adam,naive,1000,None,tanh,100,200,0.1,0.99,100,10,True,10,False,"[-1,10,-1]",

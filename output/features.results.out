@@ -1,0 +1,8 @@
+1474081040
+layers,1:tau,0.001:optimizer,adam:advantage,naive:max_timesteps,1000:gym_record,None:activation,tanh:batch_size,100:episodes,1200:exploration,0.1:gamma,0.99:hidden_size,100:train_repeat,10:display,True:min_train,10:batch_norm,False:
+1474931636
+layers,1:tau,0.01:optimizer,adam:advantage,naive:max_timesteps,1000:gym_record,None:activation,tanh:batch_size,100:episodes,200:exploration,0.1:gamma,0.99:hidden_size,100:train_repeat,10:display,True:min_train,10:batch_norm,False:
+1476452872
+layers,1:tau,0.001:optimizer,adam:advantage,naive:max_timesteps,1000:gym_record,None:activation,tanh:batch_size,100:episodes,200:exploration,0.1:gamma,0.99:hidden_size,100:train_repeat,10:display,True:min_train,10:batch_norm,False:
+1480113712
+1,False,relu,10,None,adam,avg,0.1,1000,0.99,100,0.01,[-10, 10, -1],True,10,10,200,
