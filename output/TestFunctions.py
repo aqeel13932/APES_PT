@@ -56,7 +56,20 @@ def totaltime(exidlst):
 			df.columns = ['Episode','Steps','Reward','Time','RWsteps','RWPD','AIPD']
 		output[str(exid)]= df.Time.sum()
 	return output
+
+def TotalSteps(exidlst):
+	output={}
+	for exid in exidlst:
+		df = pd.read_csv('{}/exp_details.csv'.format(exid),header=None)#,delimiter=',')
+		if 1474081039<exid<1476452872:
+			df.columns = ['Episode','Steps','Reward','Time']
+			WithRandomWalk=False
+		else:
+			df.columns = ['Episode','Steps','Reward','Time','RWsteps','RWPD','AIPD']
+		output[str(exid)]= df.Steps.sum()
+	return output
 	
+
 def GetBestPlacesFigure(exid,th=500):
 	df = pd.read_csv('{}/exp_details.csv'.format(exid),header=None)#,delimiter=',')
 	df.columns = ['Episode','Steps','Reward','Time','RWsteps','RWPD','AIPD']
