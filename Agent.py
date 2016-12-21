@@ -126,7 +126,7 @@ class Agent:
         output = obj.Best_Next_Step()
         if output:
             self.NextAction = self.ndirection[(start[0]-output[start][0],start[1]-output[start][1])]
-            #print self.NextAction
+            #print(self.NextAction)
 
     def DrawDirectionImage(self):
         """show an image showing all the agent direction images."""
@@ -157,7 +157,7 @@ class Agent:
         TotalLevels = Settings.WorldSize[0]
         CenterPoint = Agent.GetCenterCoords(shape)
         self.CenterPoint = CenterPoint
-        #print CenterPoint, TotalLevels
+        #print(CenterPoint,shape, TotalLevels)
         self.VisionFields['W'][CenterPoint]=1
         Start = time()
         for i in range (1,TotalLevels):
@@ -242,7 +242,7 @@ class Agent:
         Args:
             * shape: the array shape
         Return : (x,y) for the center coordinates."""
-        return (shape[0]-1)/2 , (shape[1]-1)/2
+        return int( (shape[0]-1)/2) ,int( (shape[1]-1)/2)
 
     def GetElementsCount(self,Level):
         """calculate total amount of cells we can see beside the center depending on the vision angle and Level.
@@ -285,6 +285,6 @@ class Agent:
         """Flatten NNfeed for current agent
         Return:
             1d numpy array of flatten concatenated arrays in NNFeed """
-        return np.concatenate(map(lambda x: self.NNFeed[x].flatten(),self.NNFeed.keys()))
+        return np.concatenate([self.NNFeed[x].flatten() for x in self.NNFeed])
 #        for i in self.NNFeed.keys():
 

@@ -2,6 +2,7 @@ import numpy as np
 from Settings import *
 from FOV_Calculator import FOV_SC
 from collections import OrderedDict
+from math import floor
 np.set_printoptions(linewidth=150,precision=0)
 class World:
     """This class represent the Grid world and organize the policy between world elements.
@@ -112,7 +113,7 @@ class World:
             * number: how many elements wanted.
             * center: the value of the center
         Return: start,end of type int"""
-        number = number/2
+        number = floor(number/2)
         return center-number,center+number+1
 
     # Place Obstacle no matter of it's shape on world map
@@ -123,7 +124,6 @@ class World:
             * key: obstacle ID"""
         osh,oid = self.obstacles[key].Shape.shape,self.obstacles[key].ID
         rmin,rmax,cmin,cmax = 0,0,0,0
-
         # Row obstacles has shape (x,)-> become (1,x)
         # Columns obstacles has shape (x,1) So we change the R
         modified = False
@@ -152,7 +152,7 @@ class World:
         #Regulaize domains
         cmin = 0 if cmin<0 else cmin
         cmax = self.world.shape[1] if cmax>=self.world.shape[1] else cmax
-
+        rmin,cmin,rmax,cmax = int(rmin),int(cmin),int(rmax),int(cmax)
         updatearea = self.world[rmin:rmax,cmin:cmax]
 
         # Deal with obstacles
@@ -161,7 +161,12 @@ class World:
         else:
             ToChange =  self.obstacles[key].Shape[0:updatearea.shape[0],0:updatearea.shape[1]]
         # Update the Vision Border Map(VBM)
-        self.VBM[rmin:rmax,cmin:cmax] =np.logical_or(self.VBM[rmin:rmax,cmin:cmax], np.logical_and((updatearea==0),ToChange) * (not self.obstacles[key].See))
+        ## the area that would be updated * the area that should be changed -> new look
+        newlook= np.logical_and((updatearea==0),ToChange)
+        ## Take into account the type of obstacle (water or solid)
+        newlook = newlook * (not self.obstacles[key].See)
+        ## Combine the the current state of the important area with the new look. 
+        self.VBM[rmin:rmax,cmin:cmax] =np.logical_or(self.VBM[rmin:rmax,cmin:cmax],newlook )
         #Assigen Obstacle ID to valid places on the world map
         updatearea  += np.logical_and((updatearea==0),ToChange)*key
 
@@ -291,10 +296,18 @@ class World:
     def Step(self):
         """Execute all agents actions, calculate there vision, and ditribute rewards"""
         self.StepCounter+=1
-        map(lambda x:self.agents[x].Reset(),self.agents.keys())
-        map(lambda x:self._ConsumAgentActions(x),self.agents.keys())
-        map(lambda x:self._GetTotalVision(x),self.agents.keys())
-        map(lambda x:self._AgentNNInput(x),self.agents.keys())
+        for x in self.agents.keys():
+            self.agents[x].Reset()
+
+        for x in self.agents.keys():
+            self._ConsumAgentActions(x)
+        #Vision Should be done after all the agents done there moves.
+        for x in self.agents.keys():
+            self._GetTotalVision(x)
+
+        for x in self.agents.keys():
+            self._AgentNNInput(x)
+
         self.RF(self.agents,self.foods,self.RewardsScheme,self.world,self.AfterEndSteps,self.Terminated)
         if self.Limited:
             self.Terminated[0]= (self.Limited and (self.StepsLimit<self.StepCounter)) or self.Terminated[0]
@@ -303,7 +316,9 @@ class World:
         """ Consume and clear agent actions queue
         Args:
             * ID: Agent ID"""
-        map(lambda x: self.DoAction(ID,x),self.agents[ID].NextAction)
+        for x in self.agents[ID].NextAction:
+            self.DoAction(ID,x)
+        #map(lambda x: self.DoAction(ID,x),self.agents[ID].NextAction)
     
     ########## Agent Actions ###########
     # General Agent Action # 
@@ -515,9 +530,10 @@ class World:
         # Check Agents in Foods Range
         def ResetagentReward(ID):
             #Punish for step 
-            agents[ID].CurrentReward= -1 # rwrdschem[2] if len(agents[ID].NextAction)>0 else 0
+            agents[ID].CurrentReward= rwrdschem[2] # -1 # rwrdschem[2] if len(agents[ID].NextAction)>0 else 0
             
-        map(lambda x:ResetagentReward(x),agents.keys())
+        for x in agents:
+            ResetagentReward(x)
 
         AvailableFoods = world[(world>2000)&(world<=3000)]
         if len(AvailableFoods)==0:

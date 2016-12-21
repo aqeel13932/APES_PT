@@ -1,5 +1,5 @@
 import numpy as np
-from Queue import PriorityQueue
+from queue import PriorityQueue
 from time import time
 class Node:
     def __init__(self,r,c,G,H,Fathercords):
@@ -10,6 +10,8 @@ class Node:
         self.H = H
         self.Father=Fathercords
 
+    def __eq__(self,other):
+        return True
 class Astar:
     def __init__(self,arr,start,end):
         """Initialize Astar Algorithm requirements.
@@ -37,7 +39,7 @@ class Astar:
             self.Closed[(a.r,a.c)]= a
         p = self.end
         if not p in self.visited.keys():
-            print 'no path exist found'
+            print('no path exist found')
             return None
         
         MoveMap={}
@@ -64,6 +66,7 @@ class Astar:
         t = Node(ncoords[0],ncoords[1],father.G+1,self.Distance(ncoords,self.end),(father.r,father.c))
         if ncoords == self.end:
             self.GoalFound=True
+        
         self.Open.put((t.F,t))
         self.visited[ncoords]=True
 
@@ -77,10 +80,13 @@ class Astar:
         if (not self.isInvalidIndex(a.r,a.c+1)):
             self.AddtoQueue((a.r,a.c+1),a)
             
-            
+
     def Distance(self,a,b):
         return abs((a[0])-b[0])+abs((a[1])-b[1])
 #s = time()
-#x = Astar(np.zeros((10,10),dtype=int),(1,1),(8,8)) 
-#print x.Best_Next_Step()
-#print time()-s
+#x = Astar(np.zeros((10,10),dtype=int),(1,1),(8,8))
+#rr = x.Best_Next_Step()
+#import operator
+#rr = sorted(rr.items(),key=operator.itemgetter(1))
+#print(rr)
+#print(time()-s)
