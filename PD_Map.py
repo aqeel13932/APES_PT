@@ -49,7 +49,7 @@ def Get_Surrondings(location,shape,wm):
             ActualPossibilities+=1
     #Stay at the same place (All Possibilities - Available possibilities)/All possibilities
     op.append(location)
-    op= map(lambda x:nl(x,shape),op)
+    op= [nl(x,shape) for x in op]
     pv.append((AllPossibilities-ActualPossibilities)/AllPossibilities)
     return op,pv
 
