@@ -8,6 +8,7 @@ __pycache__/
 
 #Directories to ignor
 output/*/
+output_old/*/
 # Distribution / packaging
 .Python
 env/

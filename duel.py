@@ -1,7 +1,5 @@
 import argparse
-import gym
-from gym.spaces import Box, Discrete
-from keras.models import Model,load_model
+from keras.models import Model
 from keras.layers import Input, Dense, Lambda
 from keras.layers.normalization import BatchNormalization
 from keras import backend as K
@@ -14,41 +12,41 @@ from Obstacles import *
 from Foods import *
 from time import time
 from copy import deepcopy
+from buffer import Buffer
+
 parser = argparse.ArgumentParser()
-parser.add_argument('--batch_size', type=int, default=100)
-parser.add_argument('--hidden_size', type=int, default=100)
-parser.add_argument('--layers', type=int, default=1)
-parser.add_argument('--batch_norm', action="store_true", default=False)
+parser.add_argument('--batch_size', type=int, default=100)#100 ( 100, 16,32,64,128) priority 3
+parser.add_argument('--hidden_size', type=int, default=100)#priority 2
+parser.add_argument('--layers', type=int, default=1) #priority : 1.9 (it should learn regardless , but the quality differ ) 
+parser.add_argument('--batch_norm', action="store_true", default=False)#priority 5 , keep turned off
 parser.add_argument('--no_batch_norm', action="store_false", dest='batch_norm')
-parser.add_argument('--min_train', type=int, default=10)
-parser.add_argument('--train_repeat', type=int, default=10)
-parser.add_argument('--gamma', type=float, default=0.99)
-parser.add_argument('--tau', type=float, default=0.001)
-parser.add_argument('--episodes', type=int, default=200)
-parser.add_argument('--max_timesteps', type=int, default=1000)
-parser.add_argument('--activation', choices=['tanh', 'relu'], default='tanh')
-parser.add_argument('--optimizer', choices=['adam', 'rmsprop'], default='adam')
-#parser.add_argument('--optimizer_lr', type=float, default=0.001)
-parser.add_argument('--exploration', type=float, default=0.1)
-parser.add_argument('--advantage', choices=['naive', 'max', 'avg'], default='naive')
-parser.add_argument('--display', action='store_true', default=True)
-parser.add_argument('--no_display', dest='display', action='store_false')
-parser.add_argument('--gym_record')
-parser.add_argument('--rwrdschem',nargs='+',default=[-10,10,-1],type=float)
+parser.add_argument('--replay_size', type=int, default=100000)# try increasing later  , priority 3.1
+parser.add_argument('--train_repeat', type=int, default=10)#(2^2) , priority 1
+parser.add_argument('--gamma', type=float, default=0.99)# (calculated should be 0.99) (0.99)
+parser.add_argument('--tau', type=float, default=0.001)# priority 0.9 (0.001 , 0.01 , 0.1) the one that work expeirment in the domain.
+parser.add_argument('--episodes', type=int, default=200)# much more ( 1000 -> 10,000) 
+parser.add_argument('--max_timesteps', type=int, default=1000)# 1000
+parser.add_argument('--activation', choices=['tanh', 'relu'], default='tanh')# experiment ( relu , tanh) priority 0.7
+parser.add_argument('--optimizer', choices=['adam', 'rmsprop'], default='adam')# priority 4.9
+#parser.add_argument('--optimizer_lr', type=float, default=0.001)#could be used later priority 4.5
+parser.add_argument('--exploration', type=float, default=0.1)# priority (0.8) it should decrease over time to reach 0.001 or even 0
+parser.add_argument('--advantage', choices=['naive', 'max', 'avg'], default='naive')# priority 2 maybe done once and stike with one 
+parser.add_argument('--rwrdschem',nargs='+',default=[-10,1000,-0.1],type=float) #(calculated should be (1000 reward , -0.1 punish per step)
 parser.add_argument('--svision',type=int,default=180)
 parser.add_argument('--details',type=str,default='')
+
 args = parser.parse_args()
 
 File_Signature = int(round(time()))
 def GenerateSettingsLine():
     global args
     line = []
+    line.append(args.replay_size)
     line.append(args.layers)
     line.append(args.tau)
     line.append(args.optimizer)
     line.append(args.advantage)
     line.append(args.max_timesteps)
-    line.append(args.gym_record)
     line.append(args.activation)
     line.append(args.batch_size)
     line.append(args.episodes)
@@ -56,8 +54,6 @@ def GenerateSettingsLine():
     line.append(args.gamma)
     line.append(args.hidden_size)
     line.append(args.train_repeat)
-    line.append(args.display)
-    line.append(args.min_train)
     line.append(args.batch_norm)
     line.append(args.rwrdschem)
     line.append(args.svision)
@@ -199,14 +195,9 @@ model.compile(optimizer='adam', loss='mse')
 x, z = createLayers(ishape,naction)
 target_model = Model(input=x, output=z)
 target_model.set_weights(model.get_weights())
-prestates = []
-actions = []
-rewards = []
-poststates = []
-terminals = []
+mem = Buffer(args.replay_size,ishape,(1,))
 #Framse Size
 fs = (Settings.WorldSize[0]*Settings.BlockSize[0],Settings.WorldSize[1]*Settings.BlockSize[1])
-#Video Encoding
 total_reward = 0
 #Create Folder to store the output
 if not os.path.exists('output/{}'.format(File_Signature)):
@@ -234,6 +225,8 @@ for i_episode in range(args.episodes):
     episode_reward=0
     observation = AIAgent.Flateoutput()
     for t in range(args.max_timesteps):
+        if t%100==0:
+            print('Step:',t,',Episode:',i_episode)
         if np.random.random() < args.exploration:
           action =AIAgent.RandomAction()
         else:
@@ -242,8 +235,7 @@ for i_episode in range(args.episodes):
           #print "q:", q
           action = np.argmax(q[0])
         #print "action:", action
-        prestates.append(observation)
-        actions.append(action)
+        prev_ob = observation
         AIAgent.NextAction = Settings.PossibleActions[action]
         game.Step()
         observation = AIAgent.Flateoutput()
@@ -252,31 +244,25 @@ for i_episode in range(args.episodes):
         #observation, reward, done, info = env.step(action)
         episode_reward += reward
         #print "reward:", reward
+        mem.add(prev_ob,np.array([action]),reward,observation,done)
+        for k in range(args.train_repeat):
+            prestates,actions,rewards,poststates,terminals = mem.sample(args.batch_size)
 
-        rewards.append(reward)
-        poststates.append(observation)
-        terminals.append(done)
-        if len(prestates) > args.min_train:
-          for k in range(args.train_repeat):
-            if len(prestates) > args.batch_size:
-              indexes = np.random.choice(len(prestates), size=args.batch_size)
-            else:
-              indexes = range(len(prestates))
-            qpre = model.predict(np.array(prestates)[indexes])
-            qpost = model.predict(np.array(poststates)[indexes])
-            for i in range(len(indexes)):
-              if terminals[indexes[i]]:
-                  qpre[i, actions[indexes[i]]] = rewards[indexes[i]]
-              else:
-                  try:
-                      qpre[i, actions[indexes[i]]] = rewards[indexes[i]] + args.gamma * np.amax(qpost[i])
-                  except Exception as ex:
-                      print('qpre.shape:{},i:{},actions:{}'.format(qpre.shape,i,actions[indexes[i]]))
-            model.train_on_batch(np.array(prestates)[indexes], qpre)
+            qpre = model.predict(prestates)
+            qpost = model.predict(poststates)
+            for i in range(qpre.shape[0]):
+                if terminals[i]:
+                    qpre[i, actions[i]] = rewards[i]
+                else:
+                    try:
+                        qpre[i, actions[i]] = rewards[i] + args.gamma * np.amax(qpost[i])
+                    except Exception as ex:
+                        print('qpre.shape:{},i:{},actions:{}'.format(qpre.shape,i,actions[i]))
+            model.train_on_batch(prestates, qpre)
             weights = model.get_weights()
             target_weights = target_model.get_weights()
             for i in range(len(weights)):
-              target_weights[i] = args.tau * weights[i] + (1 - args.tau) * target_weights[i]
+                target_weights[i] = args.tau * weights[i] + (1 - args.tau) * target_weights[i]
             target_model.set_weights(target_weights)
 
         if done:
