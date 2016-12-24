@@ -276,7 +276,6 @@ while progress<args.totalsteps:
     WriteInfo(i_episode,t+1,episode_reward,Start,rwtc,rwtcprob,aiprob,'train')
     print("Episode {} finished after {} timesteps, episode reward {} Tooks {}s".format(i_episode, t + 1, episode_reward,Start))
     total_reward += episode_reward
-    model.save('output/{}/MOD/model_{}.h5'.format(File_Signature,i_episode+1))
     if i_episode%10==0:
         TryModel(target_model,game)
 print("Average reward per episode {}".format(total_reward /i_episode))
