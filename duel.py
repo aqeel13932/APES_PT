@@ -24,8 +24,8 @@ parser.add_argument('--replay_size', type=int, default=100000)# try increasing l
 parser.add_argument('--train_repeat', type=int, default=10)#(2^2) , priority 1
 parser.add_argument('--gamma', type=float, default=0.99)# (calculated should be 0.99) (0.99)
 parser.add_argument('--tau', type=float, default=0.001)# priority 0.9 (0.001 , 0.01 , 0.1) the one that work expeirment in the domain.
-parser.add_argument('--episodes', type=int, default=200)# much more ( 1000 -> 10,000) 
-parser.add_argument('--max_timesteps', type=int, default=1000)# 1000
+parser.add_argument('--totalsteps', type=int, default=2000)# much more ( 1000 -> 10,000) (should be around 1 million steps)
+parser.add_argument('--max_timesteps', type=int, default=1000)# 1000 
 parser.add_argument('--activation', choices=['tanh', 'relu'], default='tanh')# experiment ( relu , tanh) priority 0.7
 parser.add_argument('--optimizer', choices=['adam', 'rmsprop'], default='adam')# priority 4.9
 #parser.add_argument('--optimizer_lr', type=float, default=0.001)#could be used later priority 4.5
@@ -49,7 +49,7 @@ def GenerateSettingsLine():
     line.append(args.max_timesteps)
     line.append(args.activation)
     line.append(args.batch_size)
-    line.append(args.episodes)
+    line.append(args.totalsteps)
     line.append(args.exploration)
     line.append(args.gamma)
     line.append(args.hidden_size)
@@ -195,6 +195,7 @@ model.compile(optimizer='adam', loss='mse')
 x, z = createLayers(ishape,naction)
 target_model = Model(input=x, output=z)
 target_model.set_weights(model.get_weights())
+
 mem = Buffer(args.replay_size,ishape,(1,))
 #Framse Size
 fs = (Settings.WorldSize[0]*Settings.BlockSize[0],Settings.WorldSize[1]*Settings.BlockSize[1])
@@ -205,8 +206,13 @@ if not os.path.exists('output/{}'.format(File_Signature)):
         os.makedirs('output/{}/PNG'.format(File_Signature))
         os.makedirs('output/{}/VID'.format(File_Signature))
         os.makedirs('output/{}/MOD'.format(File_Signature))
-
-for i_episode in range(args.episodes):
+        
+target_model.save('output/{}/target_model_basic.h5'.format(File_Signature))
+progress=0
+i_episode=0
+while progress<args.totalsteps:
+    i_episode+=1
+#for i_episode in range(args.episodes):
     game.GenerateWorld()
     wmap = deepcopy(game.world)
     agindx = np.where(wmap==1001)
@@ -221,7 +227,7 @@ for i_episode in range(args.episodes):
     game.Step()
     #Recording Video
     img =game.BuildImage()
-    plt.imsave('output/{}/PNG/{}.png'.format(File_Signature,i_episode+1),img)
+    plt.imsave('output/{}/PNG/{}.png'.format(File_Signature,i_episode),img)
     episode_reward=0
     observation = AIAgent.Flateoutput()
     for t in range(args.max_timesteps):
@@ -269,11 +275,12 @@ for i_episode in range(args.episodes):
             break
     aiprob =0# DPMP(wmap,agindx,findx,t+1)
     Start = time()-Start
-    WriteInfo(i_episode+1,t+1,episode_reward,Start,rwtc,rwtcprob,aiprob,'train')
-    print("Episode {} finished after {} timesteps, episode reward {} Tooks {}s".format(i_episode + 1, t + 1, episode_reward,Start))
+    progress+=t
+    WriteInfo(i_episode,t+1,episode_reward,Start,rwtc,rwtcprob,aiprob,'train')
+    print("Episode {} finished after {} timesteps, episode reward {} Tooks {}s".format(i_episode, t + 1, episode_reward,Start))
     total_reward += episode_reward
     model.save('output/{}/MOD/model_{}.h5'.format(File_Signature,i_episode+1))
     TryModel(target_model,game)
-print("Average reward per episode {}".format(total_reward / args.episodes))
+print("Average reward per episode {}".format(total_reward /i_episode))
 model.save('output/{}/model.h5'.format(File_Signature))
 target_model.save('output/{}/target_model.h5'.format(File_Signature))
