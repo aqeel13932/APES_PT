@@ -1,5 +1,5 @@
-import cv2
 import numpy as np
+from skimage import io,transform
 import os
 #For Video Genration.
 import matplotlib.animation as animation
@@ -105,12 +105,12 @@ class Settings:
         Settings.Food+=1
         return Settings.Food
 
-    #convert from BGR colors to RGB colors
     @staticmethod
     def ImageViewer(image):
         """Convert image from BGR to RGB colors
         Return: RGB image"""
-        return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)/255.0
+        #return cv2.cvtColor(image, cv2.COLOR_BGR2RGB)/255.0
+        return image
 
     #Store Image with Key
     @staticmethod
@@ -126,7 +126,7 @@ class Settings:
         """
         if not os.path.isfile(Fname):
             raise IOError('file:\'{}\' not found'.format(Fname))
-        Settings.Images[Key] = Settings.ImageViewer(cv2.resize(cv2.imread(Fname),Settings.BlockSize))
+        Settings.Images[Key] = Settings.ImageViewer(transform.resize(io.imread(Fname),Settings.BlockSize))
     @staticmethod
     def SetBlockSize(Newsize):
         """Set new block size in the Settings

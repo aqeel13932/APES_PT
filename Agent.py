@@ -1,5 +1,5 @@
 from Settings import *
-import cv2
+from skimage import io,transform
 import matplotlib.pyplot as plt
 import numpy as np
 from math import ceil
@@ -59,11 +59,10 @@ class Agent:
         if not os.path.isfile(Fname):
             raise IOError('file:\'{}\' not found'.format(Fname))
         self.ControlRange=ControlRange
-        E = Settings.ImageViewer(cv2.resize(cv2.imread(Fname),Settings.BlockSize)) #Image of Robot looking West
-        W = cv2.flip(E,1) # Image of agent looking East
-        M = cv2.getRotationMatrix2D((E.shape[0]/2,E.shape[1]/2),-90,1)
-        N = cv2.warpAffine(E,M,E.shape[0:2]) # Image of Agent looking south
-        S = cv2.warpAffine(W,M,E.shape[0:2]) # Image of Agent looking North
+        E = Settings.ImageViewer(transform.resize(io.imread(Fname),Settings.BlockSize)) #Image of Robot looking West
+        W = np.fliplr(E)
+        N = transform.rotate(E,-90,resize=True)
+        S = transform.rotate(E,90,resize=True)
         self.Directions = {'W' : W ,'N':N, 'S': S,'E':E}
         visionshape = (Settings.WorldSize[0]*2-1,Settings.WorldSize[1]*2-1)
         self.ID = Settings.GetAgentID() # Get Agent ID
