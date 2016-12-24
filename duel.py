@@ -138,7 +138,6 @@ def createLayers(insize,naction):
 def RandomWalk(game):
     rw = deepcopy(game)
     rwtc = 0
-    print ('Random Walk Started')
     while not rw.Terminated[0]:
         rw.agents[1001].RandomAction() 
         rw.Step()
@@ -156,8 +155,6 @@ def TryModel(model,game):
     observation = AIAgent.Flateoutput()
 
     for t in range(args.max_timesteps):
-        #img = game.BuildImage()
-        #out.write(cv2.cvtColor(np.array(img*255,dtype=np.uint8),cv2.COLOR_RGB2BGR))
         s =np.array([observation])
         q = model.predict(s, batch_size=1)
         action = np.argmax(q[0])
@@ -166,10 +163,11 @@ def TryModel(model,game):
         observation = AIAgent.Flateoutput()
         reward = AIAgent.CurrentReward
         done = game.Terminated[0]
+
         #observation, reward, done, info = env.step(action)
         episode_reward += reward
-        #print "reward:", reward
 
+        #print "reward:", reward
         if done:
             break
     Start = time()-Start
@@ -207,7 +205,6 @@ if not os.path.exists('output/{}'.format(File_Signature)):
         os.makedirs('output/{}/VID'.format(File_Signature))
         os.makedirs('output/{}/MOD'.format(File_Signature))
         
-target_model.save('output/{}/target_model_basic.h5'.format(File_Signature))
 progress=0
 i_episode=0
 while progress<args.totalsteps:
@@ -231,8 +228,8 @@ while progress<args.totalsteps:
     episode_reward=0
     observation = AIAgent.Flateoutput()
     for t in range(args.max_timesteps):
-        if t%100==0:
-            print('Step:',t,',Episode:',i_episode)
+        #if t%100==0:
+        #    print('Step:',t,',Episode:',i_episode)
         if np.random.random() < args.exploration:
           action =AIAgent.RandomAction()
         else:
@@ -280,7 +277,9 @@ while progress<args.totalsteps:
     print("Episode {} finished after {} timesteps, episode reward {} Tooks {}s".format(i_episode, t + 1, episode_reward,Start))
     total_reward += episode_reward
     model.save('output/{}/MOD/model_{}.h5'.format(File_Signature,i_episode+1))
-    TryModel(target_model,game)
+    if i_episode%10==0:
+        TryModel(target_model,game)
 print("Average reward per episode {}".format(total_reward /i_episode))
 model.save('output/{}/model.h5'.format(File_Signature))
 target_model.save('output/{}/target_model.h5'.format(File_Signature))
+TryModel(target_model,game)
