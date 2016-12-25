@@ -9,12 +9,11 @@ red agent is driven by hard coded algorithm.
 For the environment to work with full features you need to use python 3.
 
 If you are a conda user you can prepare the environment with the following commands: 
+
 `bash
 conda create -n py3 numpy scipy scikit-learn matplotlib jupyter jupyter_core notebook python=3
 source activate py3
 pip install keras
 pip install sk-video
 conda install -n py3 scikit-image
-```
 `
-
