@@ -1,21 +1,8 @@
 import argparse
-from keras.models import Model
-from keras.layers import Input, Dense, Lambda
-from keras.layers.normalization import BatchNormalization
-from keras import backend as K
-import numpy as np
-from PD_Map import DPMP
-from Settings import *
-from World import *
-from Agent import *
-from Obstacles import *
-from Foods import *
-from time import time
-from copy import deepcopy
-from buffer import Buffer
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--batch_size', type=int, default=100)#100 ( 100, 16,32,64,128) priority 3
+parser.add_argument('--seed',type=int,default=1337)#4(CH)9(JAP)17(ITAL)
 parser.add_argument('--hidden_size', type=int, default=100)#priority 2
 parser.add_argument('--layers', type=int, default=1) #priority : 1.9 (it should learn regardless , but the quality differ ) 
 parser.add_argument('--batch_norm', action="store_true", default=False)#priority 5 , keep turned off
@@ -30,12 +17,29 @@ parser.add_argument('--activation', choices=['tanh', 'relu'], default='tanh')# e
 parser.add_argument('--optimizer', choices=['adam', 'rmsprop'], default='adam')# priority 4.9
 #parser.add_argument('--optimizer_lr', type=float, default=0.001)#could be used later priority 4.5
 parser.add_argument('--exploration', type=float, default=0.1)# priority (0.8) it should decrease over time to reach 0.001 or even 0
+parser.add_argument('--vanish',type=float,default=0.75)#Decide when the exploration should stop in percentage (75%)
 parser.add_argument('--advantage', choices=['naive', 'max', 'avg'], default='naive')# priority 2 maybe done once and stike with one 
 parser.add_argument('--rwrdschem',nargs='+',default=[-10,1000,-0.1],type=float) #(calculated should be (1000 reward , -0.1 punish per step)
 parser.add_argument('--svision',type=int,default=180)
 parser.add_argument('--details',type=str,default='')
 
 args = parser.parse_args()
+
+import numpy as np
+np.random.seed(args.seed)
+from keras.models import Model
+from keras.layers import Input, Dense, Lambda
+from keras.layers.normalization import BatchNormalization
+from keras import backend as K
+from PD_Map import DPMP
+from Settings import *
+from World import *
+from Agent import *
+from Obstacles import *
+from Foods import *
+from time import time
+from copy import deepcopy
+from buffer import Buffer
 
 File_Signature = int(round(time()))
 def GenerateSettingsLine():
@@ -51,10 +55,12 @@ def GenerateSettingsLine():
     line.append(args.batch_size)
     line.append(args.totalsteps)
     line.append(args.exploration)
+    line.append(args.vanish)
     line.append(args.gamma)
     line.append(args.hidden_size)
     line.append(args.train_repeat)
     line.append(args.batch_norm)
+    line.append(args.seed)
     line.append(args.rwrdschem)
     line.append(args.svision)
     line.append(args.details)
@@ -195,6 +201,8 @@ target_model = Model(input=x, output=z)
 target_model.set_weights(model.get_weights())
 
 mem = Buffer(args.replay_size,ishape,(1,))
+#Exploration decrease amount:
+EDA = args.exploration/(args.totalsteps*args.vanish)
 #Framse Size
 fs = (Settings.WorldSize[0]*Settings.BlockSize[0],Settings.WorldSize[1]*Settings.BlockSize[1])
 total_reward = 0
@@ -209,7 +217,6 @@ progress=0
 i_episode=0
 while progress<args.totalsteps:
     i_episode+=1
-#for i_episode in range(args.episodes):
     game.GenerateWorld()
     wmap = deepcopy(game.world)
     agindx = np.where(wmap==1001)
@@ -218,7 +225,7 @@ while progress<args.totalsteps:
     findx = (findx[0][0],findx[1][0])
     rwtc = RandomWalk(game)
     rwtcprob =0# DPMP(wmap,agindx,findx,rwtc)
-    print('Random Walk needed :{} steps and probability :{}'.format(rwtc,rwtcprob))
+    #print('Random Walk needed :{} steps and probability :{}'.format(rwtc,rwtcprob))
     Start = time()
     #First Step only do the calculation of the current observations for all agents
     game.Step()
@@ -227,17 +234,18 @@ while progress<args.totalsteps:
     plt.imsave('output/{}/PNG/{}.png'.format(File_Signature,i_episode),img)
     episode_reward=0
     observation = AIAgent.Flateoutput()
+    #print(args.exploration)
     for t in range(args.max_timesteps):
         #if t%100==0:
         #    print('Step:',t,',Episode:',i_episode)
+        args.exploration = args.exploration-EDA
+        
         if np.random.random() < args.exploration:
           action =AIAgent.RandomAction()
         else:
           s =np.array([observation])
           q = model.predict(s, batch_size=1)
-          #print "q:", q
           action = np.argmax(q[0])
-        #print "action:", action
         prev_ob = observation
         AIAgent.NextAction = Settings.PossibleActions[action]
         game.Step()
@@ -279,6 +287,6 @@ while progress<args.totalsteps:
     if i_episode%10==0:
         TryModel(target_model,game)
 print("Average reward per episode {}".format(total_reward /i_episode))
-model.save('output/{}/model.h5'.format(File_Signature))
-target_model.save('output/{}/target_model.h5'.format(File_Signature))
+model.save('output/{}/MOD/model.h5'.format(File_Signature))
+target_model.save('output/{}/MOD/target_model.h5'.format(File_Signature))
 TryModel(target_model,game)
