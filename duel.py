@@ -231,7 +231,6 @@ while progress<args.totalsteps:
     game.Step()
     #Recording Video
     img =game.BuildImage()
-    plt.imsave('output/{}/PNG/{}.png'.format(File_Signature,i_episode),img)
     episode_reward=0
     observation = AIAgent.Flateoutput()
     #print(args.exploration)
@@ -278,15 +277,20 @@ while progress<args.totalsteps:
 
         if done:
             break
+    if t>=999:
+
+        plt.imsave('output/{}/PNG/{}_{}.png'.format(File_Signature,i_episode,t),img)
     aiprob =0# DPMP(wmap,agindx,findx,t+1)
     Start = time()-Start
+    t = t+1
     progress+=t
-    WriteInfo(i_episode,t+1,episode_reward,Start,rwtc,rwtcprob,aiprob,'train')
-    print("Episode {} finished after {} timesteps, episode reward {} Tooks {}s".format(i_episode, t + 1, episode_reward,Start))
+    
+    WriteInfo(i_episode,t,episode_reward,Start,rwtc,rwtcprob,aiprob,'train')
+    print("Episode {} finished after {} timesteps, episode reward {} Tooks {}s, Total Progress:{}".format(i_episode, t, episode_reward,Start,progress))
     total_reward += episode_reward
     if i_episode%10==0:
         TryModel(target_model,game)
-print("Average reward per episode {}".format(total_reward /i_episode))
+        print("Average reward per episode {}".format(total_reward /i_episode))
 model.save('output/{}/MOD/model.h5'.format(File_Signature))
 target_model.save('output/{}/MOD/target_model.h5'.format(File_Signature))
 TryModel(target_model,game)
