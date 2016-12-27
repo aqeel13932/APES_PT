@@ -3,7 +3,8 @@ for i in `seq 1 63`;
 do
 	cd $i
 	#7za a models.7z MOD model.h5
-	7za x models.7z
+	rm models.7z
+	rm -rf MOD
 	#rm -rf MOD
 	#rm model.h5
 	cd ..
