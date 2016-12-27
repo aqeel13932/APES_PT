@@ -1,6 +1,7 @@
 import argparse
 
 parser = argparse.ArgumentParser()
+parser.add_argument('filesignature',type=int)
 parser.add_argument('--batch_size', type=int, default=100)#100 ( 100, 16,32,64,128) priority 3
 parser.add_argument('--seed',type=int,default=1337)#4(CH)9(JAP)17(ITAL)
 parser.add_argument('--hidden_size', type=int, default=100)#priority 2
@@ -41,7 +42,8 @@ from time import time
 from copy import deepcopy
 from buffer import Buffer
 
-File_Signature = int(round(time()))
+#File_Signature = int(round(time()))
+File_Signature = args.filesignature
 def GenerateSettingsLine():
     global args
     line = []
