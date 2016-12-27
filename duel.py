@@ -77,7 +77,6 @@ def WriteInfo(epis,t,epis_rwrd,start,rwsc,rwprob,aiproba,eptype):
         outp.write('{},{},{},{},{},{},{},{}\n'.format(epis,t,epis_rwrd,start,rwsc,rwprob,aiproba,eptype))
 
 def SetupEnvironment():
-    np.random.seed(1337)
     Start = time()
 
     #Add Pictures
