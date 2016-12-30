@@ -2,24 +2,24 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument('filesignature',type=int)
-parser.add_argument('--batch_size', type=int, default=100)#100 ( 100, 16,32,64,128) priority 3
+parser.add_argument('--batch_size', type=int, default=10)#100 ( 100, 16,32,64,128) priority 3
 parser.add_argument('--seed',type=int,default=1337)#4(CH)9(JAP)17(ITAL)
 parser.add_argument('--hidden_size', type=int, default=100)#priority 2
 parser.add_argument('--layers', type=int, default=1) #priority : 1.9 (it should learn regardless , but the quality differ ) 
 parser.add_argument('--batch_norm', action="store_true", default=False)#priority 5 , keep turned off
 parser.add_argument('--no_batch_norm', action="store_false", dest='batch_norm')
 parser.add_argument('--replay_size', type=int, default=100000)# try increasing later  , priority 3.1
-parser.add_argument('--train_repeat', type=int, default=10)#(2^2) , priority 1
+parser.add_argument('--train_repeat', type=int, default=1)#(2^2) , priority 1
 parser.add_argument('--gamma', type=float, default=0.99)# (calculated should be 0.99) (0.99)
 parser.add_argument('--tau', type=float, default=0.001)# priority 0.9 (0.001 , 0.01 , 0.1) the one that work expeirment in the domain.
-parser.add_argument('--totalsteps', type=int, default=2000)# much more ( 1000 -> 10,000) (should be around 1 million steps)
+parser.add_argument('--totalsteps', type=int, default=1000000)# much more ( 1000 -> 10,000) (should be around 1 million steps)
 parser.add_argument('--max_timesteps', type=int, default=1000)# 1000 
-parser.add_argument('--activation', choices=['tanh', 'relu'], default='tanh')# experiment ( relu , tanh) priority 0.7
+parser.add_argument('--activation', choices=['tanh', 'relu'], default='relu')# experiment ( relu , tanh) priority 0.7
 parser.add_argument('--optimizer', choices=['adam', 'rmsprop'], default='adam')# priority 4.9
 #parser.add_argument('--optimizer_lr', type=float, default=0.001)#could be used later priority 4.5
 parser.add_argument('--exploration', type=float, default=0.1)# priority (0.8) it should decrease over time to reach 0.001 or even 0
 parser.add_argument('--vanish',type=float,default=0.75)#Decide when the exploration should stop in percentage (75%)
-parser.add_argument('--advantage', choices=['naive', 'max', 'avg'], default='naive')# priority 2 maybe done once and stike with one 
+parser.add_argument('--advantage', choices=['naive', 'max', 'avg'], default='avg')# priority 2 maybe done once and stike with one 
 parser.add_argument('--rwrdschem',nargs='+',default=[-10,1000,-0.1],type=float) #(calculated should be (1000 reward , -0.1 punish per step)
 parser.add_argument('--svision',type=int,default=180)
 parser.add_argument('--details',type=str,default='')
@@ -28,6 +28,7 @@ args = parser.parse_args()
 
 import numpy as np
 np.random.seed(args.seed)
+import skvideo.io
 from keras.models import Model
 from keras.layers import Input, Dense, Lambda
 from keras.layers.normalization import BatchNormalization
@@ -41,7 +42,7 @@ from Foods import *
 from time import time
 from copy import deepcopy
 from buffer import Buffer
-
+import os
 #File_Signature = int(round(time()))
 File_Signature = args.filesignature
 def GenerateSettingsLine():
@@ -155,18 +156,23 @@ def TryModel(model,game):
     print('Testing Target Model')
     global AIAgent,File_Signature,TestingCounter
     TestingCounter+=1
+    writer = skvideo.io.FFmpegWriter("output/{}/VID/{}_Test.avi".format(File_Signature,TestingCounter))
     game.GenerateWorld()
+    img = game.BuildImage()
     rwtc = RandomWalk(game)
     Start = time()
     episode_reward=0
     observation = AIAgent.Flateoutput()
 
+    writer.writeFrame(np.array(img*255,dtype=np.uint8))
     for t in range(args.max_timesteps):
         s =np.array([observation])
         q = model.predict(s, batch_size=1)
         action = np.argmax(q[0])
         AIAgent.NextAction = Settings.PossibleActions[action]
         game.Step()
+        
+        writer.writeFrame(np.array(game.BuildImage()*255,dtype=np.uint8))
         observation = AIAgent.Flateoutput()
         reward = AIAgent.CurrentReward
         done = game.Terminated[0]
@@ -177,6 +183,13 @@ def TryModel(model,game):
         #print "reward:", reward
         if done:
             break
+
+    writer.close()
+    if t>=999:
+        plt.imsave('output/{}/PNG/{}_Test.png'.format(File_Signature,TestingCounter),img)
+    else:
+        os.remove("output/{}/VID/{}_Test.avi".format(File_Signature,TestingCounter))
+
     Start = time()-Start
 
     WriteInfo(TestingCounter,t+1,episode_reward,Start,rwtc,'0','0','Test')
@@ -280,7 +293,7 @@ while progress<args.totalsteps:
             break
     if t>=999:
 
-        plt.imsave('output/{}/PNG/{}_{}.png'.format(File_Signature,i_episode,t),img)
+        plt.imsave('output/{}/PNG/{}_train.png'.format(File_Signature,i_episode),img)
     aiprob =0# DPMP(wmap,agindx,findx,t+1)
     Start = time()-Start
     t = t+1
