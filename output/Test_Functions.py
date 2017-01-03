@@ -19,10 +19,15 @@ def plotdata(ax,value,base,basename,experiements):
     if isinstance(tmp1[0],str):
         le = LabelEncoder()
         le.fit(tmp1)
+        transformed =le.transform(experiements[value]) 
         ax.scatter( le.transform(experiements[value]),base)
+        for i in range(experiements.shape[0]):
+            ax.annotate(experiements.iloc[i]['experiment'],(transformed[i],base[i]),color='red')
         tmp1 = le.transform(tmp1)
     else:
         ax.scatter(experiements[value],base)
+        for i in range(experiements.shape[0]):
+            ax.annotate(experiements.iloc[i]['experiment'],(experiements.iloc[i][value],base[i]),color='red')
     ax.set_xlabel(value)
     ax.set_ylabel(basename)
     ax.set_title(value.upper())
