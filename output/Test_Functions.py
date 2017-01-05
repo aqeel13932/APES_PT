@@ -3,7 +3,7 @@ from sklearn.preprocessing import LabelEncoder
 import matplotlib.pyplot as plt
 from matplotlib.font_manager import FontProperties
 
-def plotdata(ax,value,base,basename,experiements):
+def plotdata(ax,ax2,value,base,basename,experiements):
     """Function that plot features against base value.
     Args:
         * ax: the subplot (plt.subplot).
@@ -21,11 +21,13 @@ def plotdata(ax,value,base,basename,experiements):
         le.fit(tmp1)
         transformed =le.transform(experiements[value]) 
         ax.scatter( le.transform(experiements[value]),base)
+        ax2.scatter( le.transform(experiements[value]),base)
         for i in range(experiements.shape[0]):
             ax.annotate(experiements.iloc[i]['experiment'],(transformed[i],base[i]),color='red')
         tmp1 = le.transform(tmp1)
     else:
         ax.scatter(experiements[value],base)
+        ax2.scatter(experiements[value],base)
         for i in range(experiements.shape[0]):
             ax.annotate(experiements.iloc[i]['experiment'],(experiements.iloc[i][value],base[i]),color='red')
     ax.set_xlabel(value)
