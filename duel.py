@@ -23,13 +23,14 @@ parser.add_argument('--advantage', choices=['naive', 'max', 'avg'], default='avg
 parser.add_argument('--rwrdschem',nargs='+',default=[-10,1000,-0.1],type=float) #(calculated should be (1000 reward , -0.1 punish per step)
 parser.add_argument('--svision',type=int,default=180)
 parser.add_argument('--details',type=str,default='')
-
+parser.add_argument('--train_m',type=str,default='')
+parser.add_argument('--target_m',type=str,default='')
 args = parser.parse_args()
 
 import numpy as np
 np.random.seed(args.seed)
 import skvideo.io
-from keras.models import Model
+from keras.models import Model,load_model
 from keras.layers import Input, Dense, Lambda
 from keras.layers.normalization import BatchNormalization
 from keras import backend as K
@@ -68,6 +69,7 @@ def GenerateSettingsLine():
     line.append(args.svision)
     line.append(args.details)
     return ','.join([str(x) for x in line])
+
 line = GenerateSettingsLine()
 with open ('output/features.results.out','a') as f:
     f.write('{}\n{}\n'.format(File_Signature,line))
@@ -110,11 +112,11 @@ def SetupEnvironment():
     food = Foods('Food',PdstName='food')
 
     ragnt = Agent(Fname='Pics/ragent.jpg',Power=3,VisionAngle=args.svision,Range=-1,PdstName='ragnt')
-    gagnt = Agent(Fname='Pics/gagent.jpg',VisionAngle=180,Range=1,ControlRange=0,PdstName='gagnt')
+    gagnt = Agent(Fname='Pics/gagent.jpg',VisionAngle=180,Range=-1,ControlRange=0,PdstName='gagnt')
 
     game =World(RewardsScheme=args.rwrdschem,StepsLimit=args.max_timesteps)
     #Adding Agents in Order of Following the action
-    game.AddAgents([ragnt])#,gagnt])
+    game.AddAgents([ragnt,gagnt])
     game.AddObstacles([obs])
     game.AddFoods([food])
     Start = time()-Start
@@ -157,6 +159,7 @@ def TryModel(model,game):
     global AIAgent,File_Signature,TestingCounter
     TestingCounter+=1
     writer = skvideo.io.FFmpegWriter("output/{}/VID/{}_Test.avi".format(File_Signature,TestingCounter))
+    #writer2 = skvideo.io.FFmpegWriter("output/{}/VID/{}_TestAG.avi".format(File_Signature,TestingCounter))
     game.GenerateWorld()
     img = game.BuildImage()
     rwtc = RandomWalk(game)
@@ -170,9 +173,10 @@ def TryModel(model,game):
         q = model.predict(s, batch_size=1)
         action = np.argmax(q[0])
         AIAgent.NextAction = Settings.PossibleActions[action]
+        DAgent.DetectAndAstar()
         game.Step()
-        
         writer.writeFrame(np.array(game.BuildImage()*255,dtype=np.uint8))
+        #writer2.writeFrame(np.array(game.AgentViewPoint(AIAgent.ID)*255,dtype=np.uint8))
         observation = AIAgent.Flateoutput()
         reward = AIAgent.CurrentReward
         done = game.Terminated[0]
@@ -185,34 +189,46 @@ def TryModel(model,game):
             break
 
     writer.close()
+    #writer2.close()
     if t>=999:
         plt.imsave('output/{}/PNG/{}_Test.png'.format(File_Signature,TestingCounter),img)
-    else:
-        os.remove("output/{}/VID/{}_Test.avi".format(File_Signature,TestingCounter))
+    #else:
+        #os.remove("output/{}/VID/{}_Test.avi".format(File_Signature,TestingCounter))
+        #os.remove("output/{}/VID/{}_TestAG.avi".format(File_Signature,TestingCounter))
 
     Start = time()-Start
-
+    print(t)
     WriteInfo(TestingCounter,t+1,episode_reward,Start,rwtc,'0','0','Test')
 
 game = SetupEnvironment()
 AIAgent = game.agents[1001]
+DAgent = game.agents[1002]
 '''
 input size :
 Worldsize*(Agents Count+3)+Agents Count *4
 worldsize*(Agents count +3(food,observed,obstacles)) + Agents count *4 (orintation per agent)
 '''
-ishape =(Settings.WorldSize[0]*Settings.WorldSize[1]*(len(game.agents)+3)+ len(game.agents)*4,)
+#ishape =(Settings.WorldSize[0]*Settings.WorldSize[1]*(len(game.agents)+3)+ len(game.agents)*4,)
+ishape =(Settings.WorldSize[0]*Settings.WorldSize[1]*(2+3)+ 2*4,)
 game.GenerateWorld()
 game.Step()
 naction =  Settings.PossibleActions.shape[0]
-x, z = createLayers(ishape,naction)
-model = Model(input=x, output=z)
-model.summary()
-model.compile(optimizer='adam', loss='mse')
 
-x, z = createLayers(ishape,naction)
-target_model = Model(input=x, output=z)
-target_model.set_weights(model.get_weights())
+if args.train_m=='':
+    print('train default')
+    x, z = createLayers(ishape,naction)
+    model = Model(input=x, output=z)
+    model.summary()
+    model.compile(optimizer='adam', loss='mse')
+else:
+    model = load_model('cur_mod/{}/model.h5'.format(args.train_m))
+if args.target_m=='':
+    print('test from scractch')
+    x, z = createLayers(ishape,naction)
+    target_model = Model(input=x, output=z)
+    target_model.set_weights(model.get_weights())
+else:
+    target_model = load_model('cur_mod/{}/target_model.h5'.format(args.target_m))
 
 mem = Buffer(args.replay_size,ishape,(1,))
 #Exploration decrease amount:
@@ -261,6 +277,7 @@ while progress<args.totalsteps:
           action = np.argmax(q[0])
         prev_ob = observation
         AIAgent.NextAction = Settings.PossibleActions[action]
+        DAgent.DetectAndAstar()
         game.Step()
         observation = AIAgent.Flateoutput()
         reward = AIAgent.CurrentReward
