@@ -617,4 +617,5 @@ class World:
             else:
                 ls['agentpos{}'.format(oID)]= np.zeros(array.shape)# (array==oID)
                 ls['agentori{}'.format(oID)]=np.array([0,0,0,0])
+        #ls['zombiagent']=np.zeros(125,dtype=bool)
         return ls
