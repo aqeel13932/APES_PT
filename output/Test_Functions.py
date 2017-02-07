@@ -37,6 +37,13 @@ def plotdata(ax,ax2,value,base,basename,experiements):
     ax.set_xticks(tmp1)
     ax.set_xticklabels(tmp2,rotation=70)
 
+    ax2.set_xlabel(value)
+    ax2.set_ylabel(basename)
+    ax2.set_title(value.upper())
+    ax2.xlim= (min(tmp1),max(tmp1))
+    ax2.set_xticks(tmp1)
+    ax2.set_xticklabels(tmp2,rotation=70)
+
     return ax
 
 def plotsteps(eid,x,y,z,strng,vanish):
@@ -87,3 +94,8 @@ def plotreward(eid,x,y,z,strng,vanish):
     ax.axvspan(0,splitpoint/10 , color='green', alpha=0.8)
     ax.axvspan(splitpoint/10,test[0].max() , color='yellow', alpha=0.8)
     ax.set_title('Testing model')
+
+def plotsteps(eid):
+    exp = pd.read_csv('{}/exp_details.csv'.format(eid),header=None)
+    test = exp[exp[7]=='Test']
+    train= exp[exp[7]=='train']
