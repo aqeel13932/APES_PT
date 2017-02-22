@@ -95,7 +95,7 @@ def plotreward(eid,x,y,z,strng,vanish):
     ax.axvspan(splitpoint/10,test[0].max() , color='yellow', alpha=0.8)
     ax.set_title('Testing model')
 
-def plotsteps(eid):
+def plotsteps2(eid):
     exp = pd.read_csv('{}/exp_details.csv'.format(eid),header=None)
     test = exp[exp[7]=='Test']
     train= exp[exp[7]=='train']
