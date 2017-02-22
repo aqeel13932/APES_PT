@@ -225,7 +225,10 @@ class World:
         self.AfterEndSteps = [self.AES]
         self.Terminated = [False]
         self.world.fill(0)
-        map(lambda x: self.agents[x].FullReset(),self.agents.keys())
+        #map(lambda x: self.agents[x].FullReset(),self.agents.keys())
+        for x in self.agents.keys():
+            self.agents[x].FullReset()
+
         self.PlaceAgents()
         self.PlaceFoods()
         self.PlaceObstacles()
@@ -555,7 +558,7 @@ class World:
             if agents[ID].IAteFoodID >-1:
                 agents[ID].CurrentReward+= foods[agents[ID].IAteFoodID].Energy* rwrdschem[1]
             agntcenter = World._GetElementCoords(ID,agents[ID].FullEgoCentric)
-            aborder = World._GetVisionBorders(agntcenter,-1,agents[ID].FullEgoCentric.shape)
+            aborder = World._GetVisionBorders(agntcenter,agents[ID].ControlRange,agents[ID].FullEgoCentric.shape)
             #print 'Control Range For Agent ID:',ID
             #Critical Area For Agent
             crfa = agents[ID].FullEgoCentric[aborder[0]:aborder[1],aborder[2]:aborder[3]]

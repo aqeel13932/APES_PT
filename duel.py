@@ -67,7 +67,7 @@ def GenerateSettingsLine():
     line.append(args.seed)
     line.append(args.rwrdschem)
     line.append(args.svision)
-    line.append(args.details)
+    line.append("\""+args.details+"\"")
     return ','.join([str(x) for x in line])
 
 line = GenerateSettingsLine()
@@ -112,7 +112,7 @@ def SetupEnvironment():
     food = Foods('Food',PdstName='food')
 
     ragnt = Agent(Fname='Pics/ragent.jpg',Power=3,VisionAngle=args.svision,Range=-1,PdstName='ragnt')
-    gagnt = Agent(Fname='Pics/gagent.jpg',VisionAngle=180,Range=-1,ControlRange=0,PdstName='gagnt')
+    gagnt = Agent(Fname='Pics/gagent.jpg',VisionAngle=180,Range=-1,Power=10,ControlRange=2,PdstName='gagnt')
 
     game =World(RewardsScheme=args.rwrdschem,StepsLimit=args.max_timesteps)
     #Adding Agents in Order of Following the action
@@ -156,11 +156,12 @@ def RandomWalk(game):
 TestingCounter=0
 def TryModel(model,game):
     print('Testing Target Model')
-    global AIAgent,File_Signature,TestingCounter
+    global AIAgent,File_Signature,TestingCounter,DAgent
     TestingCounter+=1
     writer = skvideo.io.FFmpegWriter("output/{}/VID/{}_Test.avi".format(File_Signature,TestingCounter))
     #writer2 = skvideo.io.FFmpegWriter("output/{}/VID/{}_TestAG.avi".format(File_Signature,TestingCounter))
     game.GenerateWorld()
+    game.Step()
     img = game.BuildImage()
     rwtc = RandomWalk(game)
     Start = time()
@@ -192,8 +193,8 @@ def TryModel(model,game):
     #writer2.close()
     if t>=999:
         plt.imsave('output/{}/PNG/{}_Test.png'.format(File_Signature,TestingCounter),img)
-    #else:
-        #os.remove("output/{}/VID/{}_Test.avi".format(File_Signature,TestingCounter))
+    else:
+        os.remove("output/{}/VID/{}_Test.avi".format(File_Signature,TestingCounter))
         #os.remove("output/{}/VID/{}_TestAG.avi".format(File_Signature,TestingCounter))
 
     Start = time()-Start
