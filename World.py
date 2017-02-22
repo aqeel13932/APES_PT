@@ -417,7 +417,7 @@ class World:
             * position: current position
         Return:
             new position (Row,Column)"""
-        return (position[0],position[1]+1)
+        return (position[0],position[1]-1)
          
     def _EastPosition(self,position):
         """Calculate West position depending on the current position
@@ -425,7 +425,7 @@ class World:
             * position: current position
         Return:
             new position (Row,Column)"""
-        return (position[0],position[1]-1)
+        return (position[0],position[1]+1)
     ######### AGENTS VISION CALCULATION ######
     def _GetTotalVision(self,ID):
         """Get the image from agent ID prospective.
@@ -591,7 +591,7 @@ class World:
             return:
                 array (1,4) example [1,0,0,0]
             """
-            return np.array([direction=='N',direction=='S',direction=='W',direction=='E'])
+            return np.array([direction=='N',direction=='S',direction=='E',direction=='W'])
         #Used Ordered here so the output keys will be always in the same manner in case the values
         # feed to some network they will always be in same order.
         ls = OrderedDict()

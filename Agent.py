@@ -33,7 +33,7 @@ class Agent:
     def __init__(self,Fname='Pics/agent_W.jpg',Power=1,Range=-1,VisionAngle=90,ControlRange=3,See=True,PdstName=None,EgoCentric=False):
         """Initialize Agent
         Args:
-            * Fname: Location of the image 'Pics/agent_W.jpg' (shoud be looking to East)
+            * Fname: Location of the image 'Pics/agent_W.jpg' (shoud be looking to West)
             * Power: integer represent agent power, the more the stronger. (not implemented )
             * Range: integer represent Agent sight range.(how far agent can see -1 full vision) (not implemented)
             * VisionAngle: the angle of agent vision.[1,360]
@@ -59,17 +59,17 @@ class Agent:
         if not os.path.isfile(Fname):
             raise IOError('file:\'{}\' not found'.format(Fname))
         self.ControlRange=ControlRange
-        E = Settings.ImageViewer(transform.resize(io.imread(Fname),Settings.BlockSize)) #Image of Robot looking West
-        W = np.fliplr(E)
-        N = transform.rotate(E,-90,resize=True)
-        S = transform.rotate(E,90,resize=True)
+        W = Settings.ImageViewer(transform.resize(io.imread(Fname),Settings.BlockSize)) #Image of Robot looking West
+        E = np.fliplr(W)
+        S = transform.rotate(E,-90,resize=True)
+        N = transform.rotate(E,90,resize=True)
         self.Directions = {'W' : W ,'N':N, 'S': S,'E':E}
         visionshape = (Settings.WorldSize[0]*2-1,Settings.WorldSize[1]*2-1)
         self.ID = Settings.GetAgentID() # Get Agent ID
         self.IndiciesOrderName = PdstName
 
         #Field of Vision in All Directions
-        self.VisionFields = {'W' : np.zeros(visionshape,dtype=np.bool) ,'N':N, 'S': S,'E':E}
+        self.VisionFields = {'E' : np.zeros(visionshape,dtype=np.bool) ,'N':N, 'S': S,'W':W}
 
         #Borders to extract centric from egocentric (Rmin,Rmax,Cmin,Cmax)
         self.borders = (0,0,0,0)
@@ -152,19 +152,19 @@ class Agent:
     
     def PrepareFieldofView(self):
         """Calculate Field of View for "self" agent."""
-        shape = self.VisionFields['W'].shape
+        shape = self.VisionFields['E'].shape
         TotalLevels = Settings.WorldSize[0]
         CenterPoint = Agent.GetCenterCoords(shape)
         self.CenterPoint = CenterPoint
         #print(CenterPoint,shape, TotalLevels)
-        self.VisionFields['W'][CenterPoint]=1
+        self.VisionFields['E'][CenterPoint]=1
         Start = time()
         for i in range (1,TotalLevels):
-            self.updatevalues(self.VisionFields['W'][CenterPoint[0]-i:CenterPoint[0]+i+1,CenterPoint[1]-i:CenterPoint[1]+i+1],self.GetElementsCount(i))
+            self.updatevalues(self.VisionFields['E'][CenterPoint[0]-i:CenterPoint[0]+i+1,CenterPoint[1]-i:CenterPoint[1]+i+1],self.GetElementsCount(i))
             #print self.VisionFields['W'][CenterPoint[0]-i:CenterPoint[0]+i+1,CenterPoint[1]-i:CenterPoint[1]+i+1]
-        self.VisionFields['N'] = np.rot90(np.array(self.VisionFields['W'],dtype=np.bool))
-        self.VisionFields['E'] = np.rot90(np.array(self.VisionFields['N'],dtype=np.bool))
-        self.VisionFields['S'] = np.rot90(np.array(self.VisionFields['E'],dtype=np.bool))
+        self.VisionFields['N'] = np.rot90(np.array(self.VisionFields['E'],dtype=np.bool))
+        self.VisionFields['W'] = np.rot90(np.array(self.VisionFields['N'],dtype=np.bool))
+        self.VisionFields['S'] = np.rot90(np.array(self.VisionFields['W'],dtype=np.bool))
         self.VisionFields['Time'] = time()-Start
 
         #print self.VisionFields['W']
