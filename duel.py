@@ -167,10 +167,13 @@ def TryModel(model,game):
     Start = time()
     episode_reward=0
     observation = AIAgent.Flateoutput()
+    
+    deep_encoder = load_model('deep_encoder.h5')
+    compressed_observation = deep_encoder.predict(observation.reshape((1, 613))).reshape((32))     #!!!
 
     writer.writeFrame(np.array(img*255,dtype=np.uint8))
     for t in range(args.max_timesteps):
-        s =np.array([observation])
+        s =np.array([compressed_observation])
         q = model.predict(s, batch_size=1)
         action = np.argmax(q[0])
         AIAgent.NextAction = Settings.PossibleActions[action]
@@ -179,6 +182,7 @@ def TryModel(model,game):
         writer.writeFrame(np.array(game.BuildImage()*255,dtype=np.uint8))
         #writer2.writeFrame(np.array(game.AgentViewPoint(AIAgent.ID)*255,dtype=np.uint8))
         observation = AIAgent.Flateoutput()
+        compressed_observation = deep_encoder.predict(observation.reshape((1, 613))).reshape((32)) #!!!
         reward = AIAgent.CurrentReward
         done = game.Terminated[0]
 
@@ -210,7 +214,7 @@ Worldsize*(Agents Count+3)+Agents Count *4
 worldsize*(Agents count +3(food,observed,obstacles)) + Agents count *4 (orintation per agent)
 '''
 #ishape =(Settings.WorldSize[0]*Settings.WorldSize[1]*(len(game.agents)+3)+ len(game.agents)*4,)
-ishape =(Settings.WorldSize[0]*Settings.WorldSize[1]*(2+3)+ 2*4,)
+ishape = (32,)  #(Settings.WorldSize[0]*Settings.WorldSize[1]*(2+3)+ 2*4,)   !!!!!!!
 game.GenerateWorld()
 game.Step()
 naction =  Settings.PossibleActions.shape[0]
@@ -246,7 +250,7 @@ if not os.path.exists('output/{}'.format(File_Signature)):
         
 progress=0
 i_episode=0
-while progress<args.totalsteps:
+while progress< 100:  #args.totalsteps:
     i_episode+=1
     game.GenerateWorld()
     wmap = deepcopy(game.world)
@@ -264,6 +268,13 @@ while progress<args.totalsteps:
     img =game.BuildImage()
     episode_reward=0
     observation = AIAgent.Flateoutput()
+    
+    deep_encoder = load_model('deep_encoder.h5')
+    
+    compressed_observation = deep_encoder.predict(observation.reshape((1, 613))).reshape((32))
+    
+    
+    
     #print(args.exploration)
     for t in range(args.max_timesteps):
         #if t%100==0:
@@ -273,20 +284,21 @@ while progress<args.totalsteps:
         if np.random.random() < args.exploration:
           action =AIAgent.RandomAction()
         else:
-          s =np.array([observation])
+          s = np.array([compressed_observation])    #np.array([observation])   !!!
           q = model.predict(s, batch_size=1)
           action = np.argmax(q[0])
-        prev_ob = observation
+        prev_ob = compressed_observation
         AIAgent.NextAction = Settings.PossibleActions[action]
         DAgent.DetectAndAstar()
         game.Step()
         observation = AIAgent.Flateoutput()
+        compressed_observation = deep_encoder.predict(observation.reshape((1, 613))).reshape((32))      #!!!!
         reward = AIAgent.CurrentReward
         done = game.Terminated[0]
         #observation, reward, done, info = env.step(action)
         episode_reward += reward
         #print "reward:", reward
-        mem.add(prev_ob,np.array([action]),reward,observation,done)
+        mem.add(prev_ob,np.array([action]),reward,compressed_observation,done)    #!!!!!
         for k in range(args.train_repeat):
             prestates,actions,rewards,poststates,terminals = mem.sample(args.batch_size)
 
