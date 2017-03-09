@@ -107,7 +107,6 @@ class Agent:
         AvailableFoods = self.IV[(self.IV>2000)&(self.IV<=3000)]
         start = np.where(new==self.ID)
         start = (start[0][0],start[1][0])
-
         if (len(AvailableFoods)>0):
             end = np.where(self.IV==AvailableFoods[0])
             end= (end[0][0],end[1][0])       
