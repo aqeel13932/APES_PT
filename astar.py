@@ -83,10 +83,11 @@ class Astar:
 
     def Distance(self,a,b):
         return abs((a[0])-b[0])+abs((a[1])-b[1])
-#s = time()
-#x = Astar(np.zeros((10,10),dtype=int),(1,1),(8,8))
-#rr = x.Best_Next_Step()
-#import operator
-#rr = sorted(rr.items(),key=operator.itemgetter(1))
-#print(rr)
-#print(time()-s)
+if __name__=="__main__":
+    s = time()
+    x = Astar(np.zeros((10,10),dtype=int),(1,1),(8,8))
+    rr = x.Best_Next_Step()
+    import operator
+    rr = sorted(rr.items(),key=operator.itemgetter(1))
+    print(rr)
+    print(time()-s)
