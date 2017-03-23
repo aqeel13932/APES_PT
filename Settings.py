@@ -63,7 +63,7 @@ class Settings:
         # https://en.wikipedia.org/wiki/Dirichlet_distribution
         # http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.dirichlet.html
 
-        Settings.ProbabilitiesTable[Name] = np.random.dirichlet(IntProbabilityDst.ravel())
+        Settings.ProbabilitiesTable[Name] = np.random.dirichlet(IntProbabilityDst.ravel()*1000)
 
         #dx  = np.random.dirichlet(IntProbabilityDst.ravel())
         # desendent order of indicies with highest probability
