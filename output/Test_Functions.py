@@ -46,19 +46,27 @@ def plotdata(ax,ax2,value,base,basename,experiements):
 
     return ax
 
+def ReadCSV(eid,vanish):
+    exp = pd.read_csv('{}/exp_details.csv'.format(eid),header=None)
+    test = exp[exp[7]=='Test']
+    train= exp[exp[7]=='train']
+    train = train.sort_values([0])
+    test= test.sort_values([0])
+    train['cum_sum']=train[1].cumsum()
+    splitpoint = train[1].sum()*vanish
+    splitpoint = train[train.cum_sum>=splitpoint].iloc[0][0]
+    return train,test,splitpoint
+
 def plotsteps(eid,x,y,z,strng,vanish):
     font = FontProperties()
     font.set_weight('bold')
     font.set_size(15)
-    exp = pd.read_csv('{}/exp_details.csv'.format(eid),header=None)
-    test = exp[exp[7]=='Test']
-    train= exp[exp[7]=='train']
+    train,test,splitpoint = ReadCSV(eid,vanish)
     ax = plt.subplot(x,y,z+1)
     ax.text(0,1200,strng,color='green',fontproperties=font)
     ax.set_title('Training model')
     ax.plot(train[0],train[1])
     #ax.axvspan(train[0]*0.75,train[0].max(),color='red',alpha=0.5)
-    splitpoint = train[0].max()*vanish
     ax.axvspan(0,splitpoint, color='green', alpha=0.8)
     ax.axvspan(splitpoint,train[0].max() , color='yellow', alpha=0.8)
     ax.set_xlabel('Episode')
@@ -75,14 +83,11 @@ def plotreward(eid,x,y,z,strng,vanish):
     font = FontProperties()
     font.set_weight('bold')
     font.set_size(15)
-    exp = pd.read_csv('{}/exp_details.csv'.format(eid),header=None)
-    test = exp[exp[7]=='Test']
-    train= exp[exp[7]=='train']
+    train,test,splitpoint = ReadCSV(eid,vanish)
     ax = plt.subplot(x,y,z+1)
     ax.text(0,1200,strng,color='green',fontproperties=font)
     ax.set_title('Training model')
     ax.plot(train[0],train[2])
-    splitpoint = train[0].max()*vanish
     ax.axvspan(0,splitpoint, color='green', alpha=0.8)
     ax.axvspan(splitpoint,train[0].max() , color='yellow', alpha=0.8)
     ax.set_xlabel('Episode')
@@ -94,8 +99,3 @@ def plotreward(eid,x,y,z,strng,vanish):
     ax.axvspan(0,splitpoint/10 , color='green', alpha=0.8)
     ax.axvspan(splitpoint/10,test[0].max() , color='yellow', alpha=0.8)
     ax.set_title('Testing model')
-
-def plotsteps2(eid):
-    exp = pd.read_csv('{}/exp_details.csv'.format(eid),header=None)
-    test = exp[exp[7]=='Test']
-    train= exp[exp[7]=='train']
