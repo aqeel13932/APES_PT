@@ -1,0 +1,44 @@
+
+
+experiment: Represent experiemnt ID
+reply_size: The size of replay memory (usually 100K)
+layers: the number of layers.
+tau: how fast we copy the training model to the target model.
+optimizer:
+advantage: how we calculate the Qsa from Advantages and value function.
+max_steps: the maximum number of steps per game.
+activation: Activation function.
+batch_size: how many samples we train our network on.
+totalsteps: maximum number of steps allowed per experiment.
+exploration: exploration rate.[0,1]
+vanish: the ratio when the exploration rate should reach 0.
+gamma: care for future reward
+hidden_size: how many hidden nodes per layer.
+train_repeat: how many times we train our network.
+batch_norm: if nomralization is activated or not.
+seed: to manage repredoucability.
+rwrdschem: Reward Schema [punishment from agents,reward for food, punishment per step]
+svision:subordinate agent vision.
+details: extra details about the experiment.
+tr_count: how many training episodes were done in this experiment.
+tr_TR: sum of all reward in training epsiodes.
+tr_TT: Total time during training in experiment.
+tr_TS:sum of steps during training in experiment.
+ts_count:count of test episodes in experiment
+ts_TR: reward sum of test episodes in experiment.
+ts_TT: time sum of test episodes in experiment.
+ts_TS: steps sum of test episodes in experiment.
+tr_s: percentage of training episodes with positive reward (Agent find the food)
+ts_s: percentage of test episodes with positive reward.
+tr_AR: training average reward in experiment
+tr_AS: training average steps in experiment
+ts_AR: testing average reward in experiment
+ts_AS: testing average steps in experiment
+tr_SMD: traing median steps after exploration ends.
+tr_SM: traing mean steps after exploration ends.
+tr_RMD: training reward median after exploration ends.
+tr_RM: training reward mean after exploration ends.
+ts_SMD: testing steps median after exploration ends.
+ts_SM: testing steps mean after exploration ends.
+ts_RMD: testing reward median after exploration ends.
+ts_RM: testing reward mean after exploration ends.
