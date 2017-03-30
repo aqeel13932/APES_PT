@@ -95,7 +95,7 @@ def SetupEnvironment():
     ragnt = np.zeros(Settings.WorldSize)
     gagnt = np.zeros(Settings.WorldSize)
     food = np.zeros(Settings.WorldSize)
-    obs[3:8,5] = 1
+    obs[3:8,5] = 1 
     ragnt[:,0] =1
     gagnt[:,10]=1
     food[:,4:7]=1
@@ -116,7 +116,7 @@ def SetupEnvironment():
 
     game =World(RewardsScheme=args.rwrdschem,StepsLimit=args.max_timesteps)
     #Adding Agents in Order of Following the action
-    game.AddAgents([ragnt,gagnt])
+    game.AddAgents([gagnt,ragnt])
     game.AddObstacles([obs])
     game.AddFoods([food])
     Start = time()-Start
