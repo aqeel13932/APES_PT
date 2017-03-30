@@ -54,6 +54,7 @@ def ReadCSV(eid,vanish):
     test= test.sort_values([0])
     train['cum_sum']=train[1].cumsum()
     splitpoint = train[1].sum()*vanish
+    splitpoint=splitpoint[0]
     splitpoint = train[train.cum_sum>=splitpoint].iloc[0][0]
     return train,test,splitpoint
 
@@ -99,3 +100,20 @@ def plotreward(eid,x,y,z,strng,vanish):
     ax.axvspan(0,splitpoint/10 , color='green', alpha=0.8)
     ax.axvspan(splitpoint/10,test[0].max() , color='yellow', alpha=0.8)
     ax.set_title('Testing model')
+
+def Hyperparameters(ax,value,experiements):
+    tmp1 = experiements[value].unique()
+    tmp2 = experiements[value].unique()
+    if isinstance(tmp1[0],str):
+        le = LabelEncoder()
+        le.fit(tmp1)
+        experiements[value] = le.transform(experiements[value])
+        tmp1 = le.transform(tmp1)
+    ax.scatter(experiements[value],experiements.tr_AR)
+    ax.set_xlabel(value)
+    ax.set_ylabel('Average Steps')
+    ax.set_title(value.upper())
+    ax.xlim= (min(tmp1),max(tmp1))
+    ax.set_xticks(tmp1)
+    ax.set_xticklabels(tmp2,rotation=70)
+    return ax
