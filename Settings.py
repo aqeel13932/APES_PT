@@ -62,7 +62,7 @@ class Settings:
         # more info : 
         # https://en.wikipedia.org/wiki/Dirichlet_distribution
         # http://docs.scipy.org/doc/numpy/reference/generated/numpy.random.dirichlet.html
-
+        # multiplied by 1000 to increase the precision.
         Settings.ProbabilitiesTable[Name] = np.random.dirichlet(IntProbabilityDst.ravel()*1000)
 
         #dx  = np.random.dirichlet(IntProbabilityDst.ravel())
