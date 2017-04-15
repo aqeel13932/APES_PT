@@ -52,7 +52,7 @@ p1='VID_ENV_'
 p2='_Test_1.avi'
 p22='_TestAG_1.avi'
 dif='_slow'
-for i in `seq 1 5`;
+for i in `seq 1 12`;
 do
 echo $p1$i$p2
 echo $p1$i$dif$p2
