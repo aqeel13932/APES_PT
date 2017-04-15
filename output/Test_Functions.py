@@ -58,29 +58,38 @@ def ReadCSV(eid,vanish):
     splitpoint = train[train.cum_sum>=splitpoint].iloc[0][0]
     return train,test,splitpoint
 
-def plotsteps(eid,x,y,z,strng,vanish):
+def plotsteps(eid,x,y,z,strng,vanish,scatter=True):
+    alph=0.6
     font = FontProperties()
     font.set_weight('bold')
     font.set_size(15)
     train,test,splitpoint = ReadCSV(eid,vanish)
     ax = plt.subplot(x,y,z+1)
     ax.set_title('Training model')
-    ax.plot(train[0],train[1])
     ax.text(0,train[1].max()+0.2*train[1].max(),strng,color='green',fontproperties=font)
     #ax.axvspan(train[0]*0.75,train[0].max(),color='red',alpha=0.5)
     ax.set_xlabel('Episode')
     ax.set_ylabel('Steps')
-    ax.axvspan(0,splitpoint, color='green', alpha=0.8)
-    ax.axvspan(splitpoint,train[0].max() , color='yellow', alpha=0.8)
+    ax.axvspan(0,splitpoint, color='green', alpha=alph,zorder=1)
+    ax.axvspan(splitpoint,train[0].max() , color='yellow', alpha=alph,zorder=1)
+    if scatter:
+        ax.scatter(train[0],train[1],zorder=2)
+    else:
+        ax.plot(train[0],train[1],zorder=2)
+
     ax = plt.subplot(x,y,z+2)
-    ax.plot(test[0],test[1])
-    ax.axvspan(0,splitpoint/10 , color='green', alpha=0.8)
-    ax.axvspan(splitpoint/10,test[0].max() , color='yellow', alpha=0.8)
+    ax.axvspan(0,splitpoint/10 , color='green', alpha=alph,zorder=1)
+    ax.axvspan(splitpoint/10,test[0].max() , color='yellow', alpha=alph,zorder=1)
+    if scatter:
+        ax.scatter(test[0],test[1],zorder=2)
+    else:
+        ax.plot(test[0],test[1],zorder=2)
     ax.set_xlabel('Episode')
     ax.set_ylabel('Steps')
     ax.set_title('Testing model')
 
-def plotreward(eid,x,y,z,strng,vanish):
+def plotreward(eid,x,y,z,strng,vanish,scatter=True):
+    alph=0.6
     font = FontProperties()
     font.set_weight('bold')
     font.set_size(15)
@@ -88,17 +97,29 @@ def plotreward(eid,x,y,z,strng,vanish):
     ax = plt.subplot(x,y,z+1)
     ax.text(0,test[2].max()+0.2*test[2].max(),strng,color='green',fontproperties=font)
     ax.set_title('Training model')
-    ax.plot(train[0],train[2])
-    ax.axvspan(0,splitpoint, color='green', alpha=0.8)
-    ax.axvspan(splitpoint,train[0].max() , color='yellow', alpha=0.8)
+    ax.axvspan(0,splitpoint, color='green',alpha=alph,zorder=1)
+    ax.axvspan(splitpoint,train[0].max() , color='yellow',alpha=alph,zorder=1)
+    if scatter:
+        ax.scatter(train[0],train[2],zorder=2)
+    else:
+        ax.plot(train[0],train[2],zorder=2)
     ax.set_xlabel('Episode')
     ax.set_ylabel('Reward')
+    ###rm later##
+    #ax.set_xlim((5800,6000))
     ax = plt.subplot(x,y,z+2)
-    ax.plot(test[0],test[2])
     ax.set_xlabel('Episode')
     ax.set_ylabel('Reward')
-    ax.axvspan(0,splitpoint/10 , color='green', alpha=0.8)
-    ax.axvspan(splitpoint/10,test[0].max() , color='yellow', alpha=0.8)
+    ax.axvspan(0,splitpoint/10 , color='green',alpha=alph,zorder=1)
+    ax.axvspan(splitpoint/10,test[0].max() , color='yellow',alpha=alph,zorder=1)
+    if scatter:
+        ax.scatter(test[0],test[2],zorder=2)
+    else:
+        ax.plot(test[0],test[2],zorder=2)
+    #rm later
+    #ax.set_xlim((5800,6000))
+    #ax.set_ylim((950,1000))
+
     ax.set_title('Testing model')
 
 def Hyperparameters(ax,value,experiements):
@@ -173,3 +194,34 @@ def log_progress(sequence, every=None, size=None, name='Items'):
             name=name,
             index=str(index or '?')
         )
+
+
+def plotQvalues(eid,x,y,z,strng,vanish,scatter=True):
+    alph=0.6
+    font = FontProperties()
+    font.set_weight('bold')
+    font.set_size(15)
+    train,test,splitpoint = ReadCSV(eid,vanish)
+    ax = plt.subplot(x,y,z+1)
+    ax.set_title('Q values Avg ovr Batch, training')
+    ax.text(0,train[1].max()+0.2*train[1].max(),strng,color='green',fontproperties=font)
+    #ax.axvspan(train[0]*0.75,train[0].max(),color='red',alpha=0.5)
+    ax.set_xlabel('Episode')
+    ax.set_ylabel('Average')
+    ax.axvspan(0,splitpoint, color='green', alpha=alph,zorder=1)
+    ax.axvspan(splitpoint,train[0].max() , color='yellow', alpha=alph,zorder=1)
+    if scatter:
+        ax.scatter(train[0],train[8],zorder=2)
+    else:
+        ax.plot(train[0],train[8],zorder=2)
+    ax = plt.subplot(x,y,z+2)
+    ax.axvspan(0,splitpoint, color='green', alpha=alph,zorder=1)
+    ax.axvspan(splitpoint,train[0].max() , color='yellow', alpha=alph,zorder=1)
+
+    if scatter:
+        ax.scatter(train[0],train[9],zorder=2)
+    else:
+        ax.plot(train[0],train[9],zorder=2)
+    ax.set_xlabel('Episode')
+    ax.set_ylabel('Average')
+    ax.set_title('Q values Avg ovr Batch, target')
