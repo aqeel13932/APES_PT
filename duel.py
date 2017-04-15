@@ -112,8 +112,7 @@ def SetupEnvironment():
     food = Foods('Food',PdstName='food')
 
     ragnt = Agent(Fname='Pics/ragent.jpg',Power=3,VisionAngle=args.svision,Range=-1,PdstName='ragnt')
-    gagnt = Agent(Fname='Pics/gagent.jpg',VisionAngle=180,Range=-1,Power=10,ControlRange=2,PdstName='gagnt')
-
+    gagnt = Agent(Fname='Pics/gagent.jpg',VisionAngle=180,Range=-1,Power=10,ControlRange=1,PdstName='gagnt')
     game =World(RewardsScheme=args.rwrdschem,StepsLimit=args.max_timesteps)
     #Adding Agents in Order of Following the action
     game.AddAgents([gagnt,ragnt])
