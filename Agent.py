@@ -284,10 +284,13 @@ class Agent:
         Return:
             1d numpy array of flatten concatenated arrays in NNFeed """
         #Multiplex
-        self.pushF(np.concatenate([self.NNFeed[x].flatten() for x in self.NNFeed]))
+        #self.pushF(np.concatenate([self.NNFeed[x].flatten() for x in self.NNFeed]))
+        #print(np.sum(self.MultiPlex))
+        #print(np.sum(np.concatenate([self.NNFeed[x].flatten() for x in self.NNFeed])))
         #np.save('APES.npy',self.MultiPlex)
         #print(np.sum(self.MultiPlex))
-        return self.MultiPlex
+        return np.concatenate([self.NNFeed[x].flatten() for x in self.NNFeed])
+        #return self.MultiPlex
 
     def push(self, y):
         """Function to circle over a numpy array and clip the overflow
