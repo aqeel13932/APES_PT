@@ -3,7 +3,7 @@ from Settings import *
 from FOV_Calculator import FOV_SC
 from collections import OrderedDict
 from math import floor
-np.set_printoptions(linewidth=150,precision=0)
+#np.set_printoptions(linewidth=150,precision=0)
 class World:
     """This class represent the Grid world and organize the policy between world elements.
     Attributes:
@@ -608,8 +608,8 @@ class World:
         ls['obstacles'] = (array>3000)
         ls['food'] = np.logical_and(array>2000,array<3001)
         #Get list of only observed agents.
+        '''
         observedagents = array[(array>1000)&(array<2000)]
-
         for oID in agents.keys():
             if oID == ID:
                 continue
@@ -618,7 +618,8 @@ class World:
                 ls['agentpos{}'.format(oID)]= (array==oID)
                 ls['agentori{}'.format(oID)]= _agentdirection(agents[oID].Direction)
             else:
-                ls['agentpos{}'.format(oID)]= np.zeros(array.shape)# (array==oID)
-                ls['agentori{}'.format(oID)]=np.array([0,0,0,0])
-        #ls['zombiagent']=np.zeros(125,dtype=bool)
+                ls['agentpos{}'.format(oID)]= np.zeros(array.shape,dtype=bool)# (array==oID)
+                ls['agentori{}'.format(oID)]=np.array([0,0,0,0],dtype=bool)
+        '''
+        ls['zombiagent']=np.zeros(125,dtype=bool)
         return ls
