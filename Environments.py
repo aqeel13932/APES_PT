@@ -68,8 +68,8 @@ def CreateEnvironment(preference):
 	food = Foods('Food',PdstName='food')  
 	game =World(RewardsScheme=rwrdschem,StepsLimit=max_timesteps)
 	#Adding Agents in Order of Following the action
-	#game.AddAgents([gagnt,ragnt])
-	game.AddAgents([ragnt])
+	game.AddAgents([gagnt,ragnt])
+	#game.AddAgents([ragnt])
 	if preference['obs']!=(0,0):
 		game.AddObstacles([obs])
 	game.AddFoods([food])
