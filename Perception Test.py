@@ -13,8 +13,25 @@ preferences={
     10:{'sub':(1,1),'dom':(1,9),'food':(7,4),'obs':(7,5),'subdir':'E','domdir':'E','mesg':msg+msgs[0]},
     11:{'sub':(9,1),'dom':(7,1),'food':(8,10),'obs':(3,5),'subdir':'E','domdir':'E','mesg':msg+' race'},
     12:{'sub':(1,1),'dom':(1,9),'food':(1,5),'obs':(0,0),'subdir':'E','domdir':'W','mesg':msg+' SM'}
+	            }
+'''
+preferences={
+    1:{'sub':(1,1),'dom':(1,9),'food':(2,4),'obs':(2,5),'subdir':'E','domdir':'W','mesg':msg+msgs[0]},
+    2:{'sub':(1,1),'dom':(7,4),'food':(2,4),'obs':(2,5),'subdir':'E','domdir':'N','mesg':msg+msgs[1]},
+    3:{'sub':(1,1),'dom':(10,0),'food':(2,4),'obs':(2,5),'subdir':'E','domdir':'N','mesg':msg+msgs[1]},
+    4:{'sub':(1,1),'dom':(9,9),'food':(2,4),'obs':(2,5),'subdir':'E','domdir':'W','mesg':msg+msgs[0]},
+    5:{'sub':(1,1),'dom':(1,9),'food':(2,6),'obs':(2,5),'subdir':'E','domdir':'W','mesg':msg+msgs[1]+' explore'},
+    6:{'sub':(1,1),'dom':(1,9),'food':(6,5),'obs':(2,5),'subdir':'E','domdir':'W','mesg':msg+msgs[1]+' analyze the results'},
+    #7:{'sub':(1,1),'dom':(1,9),'food':(6,5),'obs':(2,5),'subdir':'E','domdir':'W','mesg':msg+msgs[1]+' Replicated'},
+    7:{'sub':(1,1),'dom':(3,1),'food':(6,5),'obs':(2,5),'subdir':'W','domdir':'W','mesg':msg+' surprise me'},
+    8:{'sub':(1,1),'dom':(9,7),'food':(2,4),'obs':(2,5),'subdir':'E','domdir':'W','mesg':msg+msgs[0]},
+    9:{'sub':(1,1),'dom':(1,9),'food':(2,4),'obs':(7,5),'subdir':'E','domdir':'E','mesg':msg+msgs[1]},
+    10:{'sub':(1,1),'dom':(1,9),'food':(7,4),'obs':(7,5),'subdir':'E','domdir':'E','mesg':msg+msgs[0]},
+    11:{'sub':(9,1),'dom':(7,1),'food':(8,10),'obs':(2,5),'subdir':'E','domdir':'E','mesg':msg+' race'},
+    12:{'sub':(1,1),'dom':(1,9),'food':(1,5),'obs':(0,0),'subdir':'E','domdir':'W','mesg':msg+' SM'}
+    #,14:{'sub':(1,1),'dom':(1,9),'food':(2,4),'obs':(2,5),'subdir':'E','domdir':'W','mesg':msg+'Not Used'}
             }
-
+'''
 import numpy as np
 np.random.seed(4917)
 from keras.models import Model,load_model
@@ -44,8 +61,8 @@ def AddTextToImage(img,action,AgentView=0):
     return img
 
 #### Load the model
-train_m=target_m = 428
-model = load_model('output/{}/MOD/target_model.h5'.format(target_m))
+train_m=target_m = 434
+model = load_model('output/{}/MOD/model.h5'.format(target_m))
 for env in range(1,13):
     counter = env+(env-1)*2
     preferences[env]['mesg']=preferences[env]['mesg'].format(env)
