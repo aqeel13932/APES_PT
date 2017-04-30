@@ -9,6 +9,7 @@ __pycache__/
 #Directories to ignor
 output/*/
 output_old/*/
+Final_Results/*
 # Distribution / packaging
 .Python
 env/
