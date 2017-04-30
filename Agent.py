@@ -30,7 +30,7 @@ class Agent:
         * IV:Incremental Vision, Each step the unseen only will be updated.(used in DetectAndAstar function (2d numpy array).
         * ndirection: link between (Agent location- next point) and the next action
 """
-    def __init__(self,Fname='Pics/agent_W.jpg',Power=1,Range=-1,VisionAngle=90,ControlRange=3,See=True,PdstName=None,EgoCentric=False,Multiplex=1):
+    def __init__(self,Fname='Pics/agent_W.jpg',Power=1,Range=-1,VisionAngle=90,ControlRange=3,See=True,PdstName=None,EgoCentric=False,Multiplex=1,ActionMemory=0):
         """Initialize Agent
         Args:
             * Fname: Location of the image 'Pics/agent_W.jpg' (shoud be looking to West)
@@ -94,6 +94,12 @@ class Agent:
         self.IV.fill(-1)
         self.ndirection={(0,0):[],(-1,0):Settings.PossibleActions[1],(1,0):Settings.PossibleActions[0],(0,-1):Settings.PossibleActions[3],(0,1):Settings.PossibleActions[2]}
         self.MultiPlex=np.zeros(613*Multiplex)
+        if ActionMemory>0:
+            self.AM = True
+        else:
+            self.AM=False
+        if self.AM:
+            self.LastnAction=np.zeros((ActionMemory,Settings.PossibleActions.shape[0]),dtype=bool)
     def DetectAndAstar(self):
         """Generate Next action using explore till we find the food then use A* algorithm to create a path to the next element.
         """
@@ -278,7 +284,9 @@ class Agent:
         self.Reset()
         self.IV.fill(-1)
         self.FullEgoCentric.fill(-1) 
-
+        if self.AM:
+            self.LastnAction.fill(False)
+        self.NextAction=[]
     def Flateoutput(self):
         """Flatten NNfeed for current agent
         Return:
@@ -289,8 +297,17 @@ class Agent:
         #print(np.sum(np.concatenate([self.NNFeed[x].flatten() for x in self.NNFeed])))
         #np.save('APES.npy',self.MultiPlex)
         #print(np.sum(self.MultiPlex))
-        return np.concatenate([self.NNFeed[x].flatten() for x in self.NNFeed])
+        if self.AM:
+            return np.concatenate([np.concatenate([self.NNFeed[x].flatten() for x in self.NNFeed]),self.LastnAction.flatten()])
+        else:
+            return np.concatenate([self.NNFeed[x].flatten() for x in self.NNFeed])
         #return self.MultiPlex
+    def AddAction(self,selected):
+        if self.AM:
+            self.LastnAction[:-1]= self.LastnAction[1:]
+            self.LastnAction[-1]=0
+            self.LastnAction[-1,selected] = 1
+        #print(self.LastnAction)
 
     def push(self, y):
         """Function to circle over a numpy array and clip the overflow
