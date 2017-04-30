@@ -25,6 +25,7 @@ parser.add_argument('--svision',type=int,default=180)
 parser.add_argument('--details',type=str,default='')
 parser.add_argument('--train_m',type=str,default='')
 parser.add_argument('--target_m',type=str,default='')
+parser.add_argument('--naction',type=int,default=1)
 args = parser.parse_args()
 
 import numpy as np
@@ -74,10 +75,10 @@ line = GenerateSettingsLine()
 with open ('output/features.results.out','a') as f:
     f.write('{}\n{}\n'.format(File_Signature,line))
 
-def WriteInfo(epis,t,epis_rwrd,start,rwsc,rwprob,aiproba,eptype):
+def WriteInfo(epis,t,epis_rwrd,start,rwsc,rwprob,aiproba,eptype,trqavg,tsqavg):
     global File_Signature
     with open('output/{}/exp_details.csv'.format(File_Signature),'a') as outp:
-        outp.write('{},{},{},{},{},{},{},{}\n'.format(epis,t,epis_rwrd,start,rwsc,rwprob,aiproba,eptype))
+        outp.write('{},{},{},{},{},{},{},{},{},{}\n'.format(epis,t,epis_rwrd,start,rwsc,rwprob,aiproba,eptype,trqavg,tsqavg))
 
 def SetupEnvironment():
     Start = time()
@@ -113,8 +114,10 @@ def SetupEnvironment():
 
     ragnt = Agent(Fname='Pics/ragent.jpg',Power=3,VisionAngle=args.svision,Range=-1,PdstName='ragnt')
     gagnt = Agent(Fname='Pics/gagent.jpg',VisionAngle=180,Range=-1,Power=10,ControlRange=1,PdstName='gagnt')
+    print(ragnt.ID,gagnt.ID)
     game =World(RewardsScheme=args.rwrdschem,StepsLimit=args.max_timesteps)
     #Adding Agents in Order of Following the action
+    #game.AddAgents([ragnt])
     game.AddAgents([gagnt,ragnt])
     game.AddObstacles([obs])
     game.AddFoods([food])
@@ -162,16 +165,19 @@ def TryModel(model,game):
     game.GenerateWorld()
     game.Step()
     img = game.BuildImage()
-    rwtc = RandomWalk(game)
+    rwtc =0# RandomWalk(game)
     Start = time()
     episode_reward=0
     observation = AIAgent.Flateoutput()
 
     writer.writeFrame(np.array(img*255,dtype=np.uint8))
     for t in range(args.max_timesteps):
-        s =np.array([observation])
-        q = model.predict(s, batch_size=1)
-        action = np.argmax(q[0])
+        if np.random.random()<0.05:
+            action = AIAgent.RandomAction()
+        else:
+            s =np.array([observation])
+            q = model.predict(s, batch_size=1)
+            action = np.argmax(q[0])
         AIAgent.NextAction = Settings.PossibleActions[action]
         DAgent.DetectAndAstar()
         game.Step()
@@ -198,9 +204,10 @@ def TryModel(model,game):
 
     Start = time()-Start
     print(t)
-    WriteInfo(TestingCounter,t+1,episode_reward,Start,rwtc,'0','0','Test')
+    WriteInfo(TestingCounter,t+1,episode_reward,Start,rwtc,'0','0','Test','0','0')
 
 game = SetupEnvironment()
+
 AIAgent = game.agents[1001]
 DAgent = game.agents[1002]
 '''
@@ -209,7 +216,7 @@ Worldsize*(Agents Count+3)+Agents Count *4
 worldsize*(Agents count +3(food,observed,obstacles)) + Agents count *4 (orintation per agent)
 '''
 #ishape =(Settings.WorldSize[0]*Settings.WorldSize[1]*(len(game.agents)+3)+ len(game.agents)*4,)
-ishape =(Settings.WorldSize[0]*Settings.WorldSize[1]*(2+3)+ 2*4,)
+ishape =(Settings.WorldSize[0]*Settings.WorldSize[1]*(2+3)+ 2*4+args.naction*5,)
 game.GenerateWorld()
 game.Step()
 naction =  Settings.PossibleActions.shape[0]
@@ -248,12 +255,12 @@ i_episode=0
 while progress<args.totalsteps:
     i_episode+=1
     game.GenerateWorld()
-    wmap = deepcopy(game.world)
-    agindx = np.where(wmap==1001)
-    agindx = (agindx[0][0],agindx[1][0])
-    findx = np.where(wmap==2001)
-    findx = (findx[0][0],findx[1][0])
-    rwtc = RandomWalk(game)
+    #wmap = deepcopy(game.world)
+    #agindx = np.where(wmap==1001)
+    #agindx = (agindx[0][0],agindx[1][0])
+    #findx = np.where(wmap==2001)
+    #findx = (findx[0][0],findx[1][0])
+    rwtc=0# = RandomWalk(game)
     rwtcprob =0# DPMP(wmap,agindx,findx,rwtc)
     #print('Random Walk needed :{} steps and probability :{}'.format(rwtc,rwtcprob))
     Start = time()
@@ -267,17 +274,16 @@ while progress<args.totalsteps:
     for t in range(args.max_timesteps):
         #if t%100==0:
         #    print('Step:',t,',Episode:',i_episode)
-        args.exploration = args.exploration-EDA
-        
+        args.exploration = max(args.exploration-EDA,0.1)
         if np.random.random() < args.exploration:
           action =AIAgent.RandomAction()
         else:
           s =np.array([observation])
-          q = model.predict(s, batch_size=1)
+          q = model.predict_on_batch(s)#, batch_size=1)
           action = np.argmax(q[0])
         prev_ob = observation
         AIAgent.NextAction = Settings.PossibleActions[action]
-        DAgent.DetectAndAstar()
+        #DAgent.DetectAndAstar()
         game.Step()
         observation = AIAgent.Flateoutput()
         reward = AIAgent.CurrentReward
@@ -288,9 +294,8 @@ while progress<args.totalsteps:
         mem.add(prev_ob,np.array([action]),reward,observation,done)
         for k in range(args.train_repeat):
             prestates,actions,rewards,poststates,terminals = mem.sample(args.batch_size)
-
-            qpre = model.predict(prestates)
-            qpost = model.predict(poststates)
+            qpre = model.predict_on_batch(prestates)
+            qpost = target_model.predict_on_batch(poststates)
             for i in range(qpre.shape[0]):
                 if terminals[i]:
                     qpre[i, actions[i]] = rewards[i]
@@ -316,7 +321,7 @@ while progress<args.totalsteps:
     t = t+1
     progress+=t
     
-    WriteInfo(i_episode,t,episode_reward,Start,rwtc,rwtcprob,aiprob,'train')
+    WriteInfo(i_episode,t,episode_reward,Start,rwtc,rwtcprob,aiprob,'train',qpre.mean(),qpost.mean())
     print("Episode {} finished after {} timesteps, episode reward {} Tooks {}s, Total Progress:{}".format(i_episode, t, episode_reward,Start,progress))
     total_reward += episode_reward
     if i_episode%10==0:
