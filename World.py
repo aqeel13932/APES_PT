@@ -608,7 +608,6 @@ class World:
         ls['obstacles'] = (array>3000)
         ls['food'] = np.logical_and(array>2000,array<3001)
         #Get list of only observed agents.
-        '''
         observedagents = array[(array>1000)&(array<2000)]
         for oID in agents.keys():
             if oID == ID:
@@ -620,6 +619,5 @@ class World:
             else:
                 ls['agentpos{}'.format(oID)]= np.zeros(array.shape,dtype=bool)# (array==oID)
                 ls['agentori{}'.format(oID)]=np.array([0,0,0,0],dtype=bool)
-        '''
-        ls['zombiagent']=np.zeros(125,dtype=bool)
+        #ls['zombiagent']=np.zeros(125,dtype=bool)
         return ls
