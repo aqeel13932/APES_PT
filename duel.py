@@ -25,7 +25,7 @@ parser.add_argument('--svision',type=int,default=180)
 parser.add_argument('--details',type=str,default='')
 parser.add_argument('--train_m',type=str,default='')
 parser.add_argument('--target_m',type=str,default='')
-parser.add_argument('--naction',type=int,default=1)
+parser.add_argument('--naction',type=int,default=0)
 args = parser.parse_args()
 
 import numpy as np
