@@ -1,4 +1,4 @@
-for i in `seq 1 186`;
+for i in `seq 223 285`;
 do
 	cd $i
 	ls

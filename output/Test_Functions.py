@@ -65,11 +65,11 @@ def plotsteps(eid,x,y,z,strng,vanish,scatter=True):
     font.set_size(15)
     train,test,splitpoint = ReadCSV(eid,vanish)
     ax = plt.subplot(x,y,z+1)
-    ax.set_title('Training model')
+    ax.set_title('Training model',fontweight='bold',fontsize=20)
     ax.text(0,train[1].max()+0.2*train[1].max(),strng,color='green',fontproperties=font)
     #ax.axvspan(train[0]*0.75,train[0].max(),color='red',alpha=0.5)
-    ax.set_xlabel('Episode')
-    ax.set_ylabel('Steps')
+    ax.set_xlabel('Episode',fontweight='bold',fontsize=20)
+    ax.set_ylabel('Steps',fontweight='bold',fontsize=20)
     ax.axvspan(0,splitpoint, color='green', alpha=alph,zorder=1)
     ax.axvspan(splitpoint,train[0].max() , color='yellow', alpha=alph,zorder=1)
     if scatter:
@@ -84,9 +84,9 @@ def plotsteps(eid,x,y,z,strng,vanish,scatter=True):
         ax.scatter(test[0],test[1],zorder=2)
     else:
         ax.plot(test[0],test[1],zorder=2)
-    ax.set_xlabel('Episode')
-    ax.set_ylabel('Steps')
-    ax.set_title('Testing model')
+    ax.set_xlabel('Episode',fontweight='bold',fontsize=20)
+    ax.set_ylabel('Steps',fontweight='bold',fontsize=20)
+    ax.set_title('Target model',fontweight='bold',fontsize=20)
 
 def plotreward(eid,x,y,z,strng,vanish,scatter=True):
     alph=0.6
@@ -96,20 +96,20 @@ def plotreward(eid,x,y,z,strng,vanish,scatter=True):
     train,test,splitpoint = ReadCSV(eid,vanish)
     ax = plt.subplot(x,y,z+1)
     ax.text(0,test[2].max()+0.2*test[2].max(),strng,color='green',fontproperties=font)
-    ax.set_title('Training model')
+    ax.set_title('Training model',fontweight='bold',fontsize=20)
     ax.axvspan(0,splitpoint, color='green',alpha=alph,zorder=1)
     ax.axvspan(splitpoint,train[0].max() , color='yellow',alpha=alph,zorder=1)
     if scatter:
         ax.scatter(train[0],train[2],zorder=2)
     else:
         ax.plot(train[0],train[2],zorder=2)
-    ax.set_xlabel('Episode')
-    ax.set_ylabel('Reward')
+    ax.set_xlabel('Episode',fontweight='bold',fontsize=20)
+    ax.set_ylabel('Reward',fontweight='bold',fontsize=20)
     ###rm later##
     #ax.set_xlim((5800,6000))
     ax = plt.subplot(x,y,z+2)
-    ax.set_xlabel('Episode')
-    ax.set_ylabel('Reward')
+    ax.set_xlabel('Episode',fontweight='bold',fontsize=20)
+    ax.set_ylabel('Reward',fontweight='bold',fontsize=20)
     ax.axvspan(0,splitpoint/10 , color='green',alpha=alph,zorder=1)
     ax.axvspan(splitpoint/10,test[0].max() , color='yellow',alpha=alph,zorder=1)
     if scatter:
@@ -120,7 +120,7 @@ def plotreward(eid,x,y,z,strng,vanish,scatter=True):
     #ax.set_xlim((5800,6000))
     #ax.set_ylim((950,1000))
 
-    ax.set_title('Testing model')
+    ax.set_title('Target model',fontweight='bold',fontsize=20)
 
 def Hyperparameters(ax,value,experiements):
     tmp1 = experiements[value].unique()
