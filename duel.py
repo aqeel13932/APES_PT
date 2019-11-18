@@ -112,7 +112,7 @@ def SetupEnvironment():
     obs = Obstacles('Wall',Shape=np.array([[1],[1],[1],[1]]),PdstName='Obs')
     food = Foods('Food',PdstName='food')
 
-    ragnt = Agent(Fname='Pics/ragent.jpg',Power=3,VisionAngle=args.svision,Range=-1,PdstName='ragnt')
+    ragnt = Agent(Fname='Pics/ragent.jpg',Power=3,VisionAngle=args.svision,Range=-1,PdstName='ragnt',ActionMemory=args.naction)
     gagnt = Agent(Fname='Pics/gagent.jpg',VisionAngle=180,Range=-1,Power=10,ControlRange=1,PdstName='gagnt')
     print(ragnt.ID,gagnt.ID)
     game =World(RewardsScheme=args.rwrdschem,StepsLimit=args.max_timesteps)
@@ -137,11 +137,11 @@ def createLayers(insize,naction):
         h = BatchNormalization()(h)
     y = Dense(naction + 1)(h)
     if args.advantage == 'avg':
-      z = Lambda(lambda a: K.expand_dims(a[:,0], dim=-1) + a[:,1:] - K.mean(a[:, 1:], keepdims=True), output_shape=(naction,))(y)
+      z = Lambda(lambda a: K.expand_dims(a[:,0], axis=-1) + a[:,1:] - K.mean(a[:, 1:], keepdims=True), output_shape=(naction,))(y)
     elif args.advantage == 'max':
-      z = Lambda(lambda a: K.expand_dims(a[:,0], dim=-1) + a[:,1:] - K.max(a[:, 1:], keepdims=True), output_shape=(naction,))(y)
+      z = Lambda(lambda a: K.expand_dims(a[:,0], axis=-1) + a[:,1:] - K.max(a[:, 1:], keepdims=True), output_shape=(naction,))(y)
     elif args.advantage == 'naive':
-      z = Lambda(lambda a: K.expand_dims(a[:,0], dim=-1) + a[:,1:], output_shape=(naction,))(y)
+      z = Lambda(lambda a: K.expand_dims(a[:,0], axis=-1) + a[:,1:], output_shape=(naction,))(y)
     else:
       assert False
 
@@ -179,6 +179,7 @@ def TryModel(model,game):
             q = model.predict(s, batch_size=1)
             action = np.argmax(q[0])
         AIAgent.NextAction = Settings.PossibleActions[action]
+        AIAgent.AddAction(action)
         DAgent.DetectAndAstar()
         game.Step()
         writer.writeFrame(np.array(game.BuildImage()*255,dtype=np.uint8))
@@ -228,14 +229,14 @@ if args.train_m=='':
     model.summary()
     model.compile(optimizer='adam', loss='mse')
 else:
-    model = load_model('cur_mod/{}/model.h5'.format(args.train_m))
+    model = load_model('output/{}/MOD/model.h5'.format(args.train_m))
 if args.target_m=='':
     print('test from scractch')
     x, z = createLayers(ishape,naction)
     target_model = Model(input=x, output=z)
     target_model.set_weights(model.get_weights())
 else:
-    target_model = load_model('cur_mod/{}/target_model.h5'.format(args.target_m))
+    target_model = load_model('output/{}/MOD/target_model.h5'.format(args.target_m))
 
 mem = Buffer(args.replay_size,ishape,(1,))
 #Exploration decrease amount:
@@ -283,7 +284,8 @@ while progress<args.totalsteps:
           action = np.argmax(q[0])
         prev_ob = observation
         AIAgent.NextAction = Settings.PossibleActions[action]
-        #DAgent.DetectAndAstar()
+        AIAgent.AddAction(action)
+        DAgent.DetectAndAstar()
         game.Step()
         observation = AIAgent.Flateoutput()
         reward = AIAgent.CurrentReward

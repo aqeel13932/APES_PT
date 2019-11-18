@@ -9,7 +9,14 @@ __pycache__/
 #Directories to ignor
 output/*/
 output_old/*/
-Final_Results/*
+Final_Results/*/
+Final_Results_Server/*/
+Final_Video/*
+Old_tries/*
+logs/*
+Supervised/*
+Random_Agents_Data/supervized.zip
+
 # Distribution / packaging
 .Python
 env/
