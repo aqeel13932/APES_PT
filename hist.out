@@ -1,0 +1,47 @@
+  323  conda create -n py3 numpy scipy scikit-learn matplotlib jupyter jupyter_core notebook python=3.5
+  324  source activate py3
+  325  source deactivate
+  326  c;ear
+  327  clear
+  328  source activate py3
+  329  pip install keras
+  330  conda install h5py
+  331  conda install scikit-image
+  332  pip install sk-video
+  333  sudo dnf install ffmpeg
+  334  clear
+  335  ls
+  336  source deactivate 
+  337  source activate py3
+  338  python -m cProfile -o performance22k.prof duelg.py 10 --exploration 1.0 --tau 0.001 --activation tanh --advantage max --seed 13477 --batch_size 32 --totalsteps 22000 --details "Static Dominant, Punishment by looking CR:1 Based on E549" --naction 5 >logs/performancetest22k.out &
+  339  vim ~/.keras/keras.json 
+  340  python -m cProfile -o performance22k.prof duelg.py 10 --exploration 1.0 --tau 0.001 --activation tanh --advantage max --seed 13477 --batch_size 32 --totalsteps 22000 --details "Static Dominant, Punishment by looking CR:1 Based on E549" --naction 5 >logs/performancetest22k.out &
+  341  clear
+  342  ls
+  343  python -m cProfile -o performance22k.prof duelg.py 10 --exploration 1.0 --tau 0.001 --activation tanh --advantage max --seed 13477 --batch_size 32 --totalsteps 5000 --details "Static Dominant, Punishment by looking CR:1 Based on E549" --naction 5 >logs/performancetest22k.out &
+  344  clear
+  345  ls
+  346  cd output/
+  347  ls
+  348  cd ..
+  349  cd logs/
+  350  ls
+  351  clear
+  352  ls
+  353  vim performancetest22k.out 
+  354  cd ..
+  355  clear
+  356  python -m cProfile -o performance22k.prof duelg.py 10 --exploration 1.0 --tau 0.001 --activation tanh --advantage max --seed 13477 --batch_size 32 --totalsteps 5000 --details "Static Dominant, Punishment by looking CR:1 Based on E549" --naction 5 >logs/performancetest22k.out &
+  357  python -m cProfile -o performance22k.prof duelg.py 10 --exploration 1.0 --tau 0.001 --activation tanh --advantage max --seed 13477 --batch_size 32 --totalsteps 5000 --details "Static Dominant, Punishment by looking CR:1 Based on E549" --naction 5
+  358  conda install theano
+  359  python -m cProfile -o performance22k.prof duelg.py 10 --exploration 1.0 --tau 0.001 --activation tanh --advantage max --seed 13477 --batch_size 32 --totalsteps 5000 --details "Static Dominant, Punishment by looking CR:1 Based on E549" --naction 5
+  360  pip install --upgrade keras
+  361  python -m cProfile -o performance22k.prof duelg.py 10 --exploration 1.0 --tau 0.001 --activation tanh --advantage max --seed 13477 --batch_size 32 --totalsteps 5000 --details "Static Dominant, Punishment by looking CR:1 Based on E549" --naction 5
+  362  python -m cProfile -o performance22k.prof duelg.py 10 --exploration 1.0 --tau 0.001 --activation tanh --advantage max --seed 13477 --batch_size 32 --totalsteps 25000 --details "Static Dominant, Punishment by looking CR:1 Based on E549" --naction 5
+  363  vim duelg.py 
+  364  python -m cProfile -o performance22k.prof duelg.py 10 --exploration 1.0 --tau 0.001 --activation tanh --advantage max --seed 13477 --batch_size 32 --totalsteps 25000 --details "Static Dominant, Punishment by looking CR:1 Based on E549" --naction 5
+  365  ls
+  366  snakeviz performance22k.prof 
+  367  conda install snakeviz
+  368  snakeviz performance22k.prof 
+  369  history >hist.out
