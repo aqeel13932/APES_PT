@@ -1,8 +1,4 @@
-from Settings import *
-from World import *
-from Agent import *
-from Obstacles import *
-from Foods import *
+from APES import *
 from time import time
 import os
 
@@ -17,8 +13,8 @@ def CreateEnvironment(preference,ActionMemory=0):
 
     #Add Pictures
     Settings.SetBlockSize(100)
-    Settings.AddImage('Wall','Pics/wall.jpg')
-    Settings.AddImage('Food','Pics/food.jpg')
+    Settings.AddImage('Wall','APES/Pics/wall.jpg')
+    Settings.AddImage('Food','APES/Pics/food.jpg')
 
     #Specify World Size
     Settings.WorldSize=(11,11)
@@ -37,8 +33,8 @@ def CreateEnvironment(preference,ActionMemory=0):
     food[preference['food']]=1
     Settings.AddProbabilityDistribution('ragnt',ragnt)
     Settings.AddProbabilityDistribution('gagnt',gagnt)
-    ragnt = Agent(Fname='Pics/ragent.jpg',Power=3,VisionAngle=svision,Range=-1,PdstName='ragnt',ActionMemory=ActionMemory)
-    gagnt = Agent(Fname='Pics/gagent.jpg',Power=10,VisionAngle=180,Range=-1,ControlRange=1,PdstName='gagnt')
+    ragnt = Agent(Fname='APES/Pics/red.jpg',Power=3,VisionAngle=svision,Range=-1,PdstName='ragnt',ActionMemory=ActionMemory)
+    gagnt = Agent(Fname='APES/Pics/blue.jpg',Power=10,VisionAngle=180,Range=-1,ControlRange=1,PdstName='gagnt')
         
     #Add Probabilities to Settings
     if preference['obs']!=(0,0):
