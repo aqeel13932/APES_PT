@@ -13,6 +13,7 @@ parser.add_argument('--naction',type=int,default=0)
 parser.add_argument('--Ego', action="store_true", default=False)
 parser.add_argument('--Level',type=int,default=3)
 parser.add_argument('--render',action="store_true",default=False)
+parser.add_argument('--action_reversed', action="store_true", default=False)
 args = parser.parse_args()
 
 import numpy as np
@@ -162,9 +163,6 @@ target_model = load_model('output/{}/MOD/target_model.h5'.format(args.train_m))
 all_data = {}
 for i in range (args.episodes):
     TestingCounter+=1
-    if args.render:
-        writer = skvideo.io.FFmpegWriter("output/{}/VID/{}_Test.avi".format(File_Signature,TestingCounter))
-        writer2 = skvideo.io.FFmpegWriter("output/{}/VID/{}_TestAG.avi".format(File_Signature,TestingCounter))
     game.GenerateWorld()
     AIAgent.Direction='E'
     game.Step()
@@ -176,7 +174,7 @@ for i in range (args.episodes):
     I_C_DOM = game.agents[1001].NNFeed['agentori1002'].sum() #I see Dominante 
     I_C_FOOD = game.agents[1001].NNFeed['food'].sum() # I See Food
     DOM_C_FOOD=game.agents[1002].NNFeed['food'].sum() # Dominant See Food.
-    print('ICD:{},ICF:{},DCF:{}'.format(I_C_DOM,I_C_FOOD,DOM_C_FOOD))
+    #print('ICD:{},ICF:{},DCF:{}'.format(I_C_DOM,I_C_FOOD,DOM_C_FOOD))
     metric = I_C_DOM and I_C_FOOD and DOM_C_FOOD
 
     if metric:
@@ -192,8 +190,8 @@ for i in range (args.episodes):
     all_cnn = np.zeros(conv_size,dtype=np.int8)
     all_rest = np.zeros(rest_size,dtype=np.int8)
     if args.render:
-        writer = skvideo.io.FFmpegWriter("output/{}/VID/{}_Test.avi".format(File_Signature,TestingCounter))
-        writer2 = skvideo.io.FFmpegWriter("output/{}/VID/{}_TestAG.avi".format(File_Signature,TestingCounter))
+        writer = skvideo.io.FFmpegWriter("output/{}/VID/{}_Test.avi".format(args.train_m,TestingCounter))
+        writer2 = skvideo.io.FFmpegWriter("output/{}/VID/{}_TestAG.avi".format(args.train_m,TestingCounter))
     for t in range(args.max_timesteps):
         all_cnn[t]=cnn
         all_rest[t]=rest
@@ -201,10 +199,16 @@ for i in range (args.episodes):
         action = np.argmax(q[0,t])
         all_data[key][t]=action
         # Only subordinate moves, dominant is static
-        if args.Ego:
-            AIAgent.NextAction =ego_action_map[(action,AIAgent.Direction)] 
+        if args.action_reversed:
+            if args.Ego:
+                AIAgent.NextAction = Settings.PossibleActions[action]
+            else:
+                AIAgent.NextAction =ego_action_map[(action,AIAgent.Direction)] 
         else:
-            AIAgent.NextAction = Settings.PossibleActions[action]
+            if args.Ego:
+                AIAgent.NextAction =ego_action_map[(action,AIAgent.Direction)] 
+            else:
+                AIAgent.NextAction = Settings.PossibleActions[action]
         AIAgent.AddAction(action)
         game.Step()
         AIAgent.NNFeed['obstacles']=[]
@@ -228,11 +232,11 @@ for i in range (args.episodes):
     ### Break the episodes loop if we reached the maximum number of initializatoins
     lenth = len(all_data.keys())
     if lenth%100==0:
-        print("We have {} unique episodes".format(length))
+        print("We have {} unique episodes".format(lenth))
     if (lenth>=31200) or (args.Ego and lenth>=26400):
         print('Total unique:{} Generated from:{} episodes.'.format(len(all_data.keys()),i))
         break
 print('Storing data')
 input_target = np.array(list(all_data.keys()))
 action_sequence=np.array(list(all_data.values()))
-np.savez('in_out_{}_seq_EGO_{}.npz'.format(input_target.shape[0],args.Ego),input_target= input_target,action_sequence=action_sequence)
+np.savez('in_out_{}_seq_EGO_{}_reversed_{}.npz'.format(input_target.shape[0],args.Ego,args.action_reversed),input_target= input_target,action_sequence=action_sequence)
