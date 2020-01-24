@@ -1,5 +1,8 @@
 from APES import *
 import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.neural_network import MLPClassifier
+
 def calculate(val,index):
     """
     This function is used specifically to calculate the mean and the standard error of the mean(SEM) of
@@ -57,3 +60,24 @@ def Get_dataset(Ego=False):
     y = y.reshape((data.shape[0],1))
     naction =  Settings.PossibleActions.shape[0]
     return cnn_input,rest_input,y,conv_size,rest_size,naction
+
+def train_and_test(X, y):
+    """
+    This function is used to decode if X can decode y. In PT case can the input find if the food is seen or not seen by dominant based on X ? 
+    Input:
+        * X: the input to the decoder. 
+        * y: 1d array of the target.
+    Output:
+        * training accuracy.
+        * testing accuracy. 
+    """
+    
+    # split into training and test episodes
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, shuffle=True)
+
+    # train linear classifier
+    clf = MLPClassifier(hidden_layer_sizes=(), solver='adam')
+    clf.fit(X_train, y_train)
+
+    # calculate training and test accuracy
+    return clf.score(X_train, y_train), clf.score(X_test, y_test)
