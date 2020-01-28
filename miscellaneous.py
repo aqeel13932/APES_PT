@@ -14,6 +14,24 @@ def calculate(val,index):
     std = np.std(val[:,index,:],axis=0)
     return mean,std/np.sqrt(std.shape[0])
 
+def Get_action_sequence(Ego=False):
+    """
+    load a *.npz dataset that have 26400 instances in ego-centric and 31200 instances in allo-centric.
+    Those files should be in NPZ folder same directory of this file.
+    Input:
+        * Ego: False to get allocentric, True to get Ego centric dataset.
+    output:
+        * action_sequence: the sequence of actions taken 
+    """
+    if Ego:
+        unique_count=26400
+    else:
+        unique_count=31200
+    all_simu = np.load('NPZ/in_out_{}_seq_EGO_{}.npz'.format(unique_count,Ego))
+    action_sequence = all_simu['action_sequence']
+    return action_sequence
+    
+
 def Get_dataset(Ego=False):
     """
     load a *.npz dataset that have 26400 instances in ego-centric and 31200 instances in allo-centric.
@@ -35,7 +53,7 @@ def Get_dataset(Ego=False):
     all_simu = np.load('NPZ/in_out_{}_seq_EGO_{}.npz'.format(unique_count,Ego))
 
     data = all_simu['input_target']
-    action_sequence = all_simu['action_sequence']
+    
 
     if Ego:
         cnn_input = data[:,:693]
