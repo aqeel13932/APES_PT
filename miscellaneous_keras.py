@@ -102,7 +102,21 @@ def create_RL_layers(insize,in_conv,naction):
 
 def Supervized_test(num_exper=20,epochs=20,Ego=False,bs=512,vs=0.2):
     """
-    Train a network with the reinforcement learning archeticture with the exception of 
+    Train a Decoder over the activations (pre-generated) to predict if the dominant can or can not
+    see the food
+    input:
+        * num_exper: how many times to repeat each experiment.
+        * epochs: how many epochs per experiement.
+        * Ego: if the original experiment was using allo-centric vision or ego-centric vision.
+        * bs : is the batch size.
+        * vs :  is the validation_split .
+    output:
+        return a numpy array with shape (num_exper,4,epochs) where the middle axes is defind as
+    follow :
+        0:validation loss
+        1: validatoin accuracy
+        2: training loss
+        3: training accuracy
     """
     cnn_input,rest_input,y,conv_size,rest_size,naction = Get_dataset(Ego=Ego)
     info = np.zeros((num_exper,4,epochs))
