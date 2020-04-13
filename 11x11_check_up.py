@@ -1,6 +1,6 @@
 #2019/11/25 10:27 This file is the latest, you can launch ego centric and allocentric experiements from same file also you can launch all 3 levels.
 #2019/12/12 19:11 This file updated the size of allo-centric map to 13x13, removed myorientation layer from ego-centric map, adpated probability matrices to work with it.
-#2019/01/09 5:41 This file allow to record with --render flag
+#2020/01/09 5:41 This file allow to record with --render flag
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('filesignature',type=int)
