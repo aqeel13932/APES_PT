@@ -239,4 +239,4 @@ for i in range (args.episodes):
 print('Storing data')
 input_target = np.array(list(all_data.keys()))
 action_sequence=np.array(list(all_data.values()))
-np.savez('in_out_{}_seq_EGO_{}_reversed_{}.npz'.format(input_target.shape[0],args.Ego,args.action_reversed),input_target= input_target,action_sequence=action_sequence)
+np.savez('NPZ/in_out_{}_seq_EGO_{}_reversed_{}.npz'.format(input_target.shape[0],args.Ego,args.action_reversed),input_target= input_target,action_sequence=action_sequence)
